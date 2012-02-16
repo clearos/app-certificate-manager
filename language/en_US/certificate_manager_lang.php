@@ -12,3 +12,6 @@ $lang['certificate_manager_region'] = 'Region';
 $lang['certificate_manager_filename'] = 'Filename';
 $lang['certificate_manager_issued'] = 'Issued';
 $lang['certificate_manager_expires'] = 'Expires';
+$lang['certificate_manager_certificate_manager_status'] = 'Certificate Manager Status';
+$lang['certificate_manager_internet_hostname'] = 'Internet Hostname';
+$lang['certificate_manager_default_certificate'] = 'Default Certificate';

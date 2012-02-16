@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Certificate authority view.
+ * Certificate manager initialization view.
  *
  * @category   ClearOS
  * @package    Certificate_Manager
@@ -26,7 +26,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.  
-//  
+//
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -34,35 +34,11 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 $this->lang->load('certificate_manager');
-$this->lang->load('base');
 
 ///////////////////////////////////////////////////////////////////////////////
-// Form open
+// Accounts Status
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('certificate_manager/edit');
-echo form_header(lang('certificate_manager_certificate'));
-
-///////////////////////////////////////////////////////////////////////////////
-// Form fields and buttons
-///////////////////////////////////////////////////////////////////////////////
-
-echo field_input('issued', $attributes['issued'], lang('certificate_manager_issued'), TRUE);
-echo field_input('expires', $attributes['expires'], lang('certificate_manager_expires'), TRUE);
-echo field_input('country', $attributes['country'], lang('certificate_manager_country'), TRUE);
-echo field_input('region', $attributes['region'], lang('certificate_manager_region'), TRUE);
-echo field_input('city', $attributes['city'], lang('certificate_manager_city'), TRUE);
-
-echo field_button_set(
-    array(
-        form_submit_update('submit', 'high'),
-        anchor_javascript('sync', lang('date_synchronize_now'), 'high')
-    )
-);
-
-///////////////////////////////////////////////////////////////////////////////
-// Form close
-///////////////////////////////////////////////////////////////////////////////
-
-echo form_footer();
-echo form_close();
+echo "<div id='certificate_manager_status_widget'>";
+echo infobox_highlight(lang('certificate_manager_certificate_manager_status'), '<div id="certificate_manager_status"></div>');
+echo "</div>";

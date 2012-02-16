@@ -74,16 +74,27 @@ class Certificate extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->view_form('certificate/summary', $data, lang('certificate_manager_certificates'));
+        $this->page->view_form('certificate_manager/summary', $data, lang('certificate_manager_certificates'));
     }
 
-    function edit()
+    /**
+     * Downloads certificate to requesting client.
+     *
+     * @return string certificate
+     */
+
+    function download($certificate)
+    {
+        $this->_install_download('download', $certificate);
+    }
+
+    function edit($certificate)
     {
         // Load dependencies
         //------------------
 
-        $this->load->library('certificate_manager/SSL');
         $this->lang->load('certificate_manager');
+        $this->load->library('certificate_manager/SSL');
 
         // Handle form submit
         //-------------------
@@ -110,7 +121,8 @@ class Certificate extends ClearOS_Controller
         //---------------
 
         try {
-            $data['attributes'] = $this->ssl->get_certificate_authority_attributes();
+            $data['certificate'] = $certificate;
+            $data['attributes'] = $this->ssl->get_certificate_attributes($certificate);
         } catch (Engine_Exception $e) {
             $this->page->view_exception($e);
             return;
@@ -119,6 +131,59 @@ class Certificate extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->view_form('item', $data, lang('certificate_manager_certificate_authority'));
+        $this->page->view_form('certificate_manager/certificate', $data, lang('certificate_manager_certificate'));
+    }
+
+    /**
+     * Installs certificate on requesting client.
+     *
+     * @return string certificate
+     */
+
+    function install($certificate)
+    {
+        $this->_install_download('install', $certificate);
+    }
+
+    function _install_download($type, $certificate)
+    {
+        // Load dependencies
+        //------------------
+
+        $this->lang->load('certificate_manager');
+        $this->load->library('certificate_manager/SSL');
+
+        // Load view data
+        //---------------
+
+        try {
+            $attributes = $this->ssl->get_certificate_attributes($certificate);
+        } catch (Engine_Exception $e) {
+            $this->page->view_exception($e);
+            return;
+        }
+
+        // Load view
+        //----------
+
+        header('Pragma: public');
+        header('Expires: 0');
+        header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+        header("Content-Transfer-Encoding: binary");
+        header('Content-Length: ' . $attributes['filesize']);
+
+        if ($type === 'download') {
+            header("Content-Type: application/octet-stream");
+            header("Content-Disposition: attachment; filename=" . $certificate . ";");
+        } else {
+            if (! empty($attributes['pkcs12']))
+                header("Content-Type: application/x-pkcs12-signature");
+            else if (! empty($attributes['ca']))
+                header("Content-Type: application/x-x509-ca-cert");
+            else
+                header("Content-Type: application/x-x509-user-cert");
+        }
+
+        echo $attributes['file_contents'];
     }
 }

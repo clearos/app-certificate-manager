@@ -7,7 +7,7 @@
  * @package    Certificate_Manager
  * @subpackage Exceptions
  * @author     ClearFoundation <developer@clearfoundation.com>
- * @copyright  2006-2011 ClearFoundation
+ * @copyright  2006-2012 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
  * @link       http://www.clearfoundation.com/docs/developer/apps/certificate_manager/
  */
@@ -71,6 +71,7 @@ use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\base\Shell as Shell;
 use \clearos\apps\certificate_manager\SSL as SSL;
 use \clearos\apps\network\Hostname as Hostname;
+use \clearos\apps\network\Network_Utils as Network_Utils;
 use \clearos\apps\organization\Organization as Organization;
 
 clearos_load_library('base/Engine');
@@ -79,6 +80,7 @@ clearos_load_library('base/Folder');
 clearos_load_library('base/Shell');
 clearos_load_library('certificate_manager/SSL');
 clearos_load_library('network/Hostname');
+clearos_load_library('network/Network_Utils');
 clearos_load_library('organization/Organization');
 
 // Exceptions
@@ -261,7 +263,7 @@ class SSL extends Engine
         // Sanitize/validate other configuration parameters before expansion.
         $req_dname = $this->configuration['req']['distinguished_name'];
 
-        $this->configuration[$req_dname]['commonName_default'] = $common_name;
+        $this->configuration[$req_dname]['commonName'] = $common_name;
         $this->configuration['global']['dir'] = SSL::PATH_SSL;
         $this->configuration['req']['encrypt_key'] = 'no';
         $this->configuration['req']['default_keyfile'] = SSL::PATH_SSL . '/private/' . $prefix . '-key.pem';
@@ -771,43 +773,47 @@ class SSL extends Engine
     /**
      * Returns certificate attributes.
      *
-     * @param string $filename certificate path and filename
+     * @param string $basename certificate basename
      *
      * @return array list of certificate attributes
      * @throws Certificate_Not_Found_Exception, Engine_Exception
      */
 
-    public function get_certificate_attributes($filename)
+    public function get_certificate_attributes($basename)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         // Ensure file/certificate exists
-        if (! preg_match('/\//', $filename))
-            $filename = self::PATH_SSL . '/' . $filename;
+        if (! preg_match('/\//', $basename))
+            $filename = self::PATH_SSL . '/' . $basename;
+        else
+            $filename = $basename;
 
         $file = new File($filename);
 
         if (! $file->exists())
             throw new Certificate_Not_Found_Exception();
 
+        // Create array and set some defaults
+        $attributes = array('ca' => FALSE, 'server' => FALSE, 'smime' => FALSE);
+
         // Since we cannot 'peek' inside PKCS12 without the password, use the x509 cert data
-        if (preg_match('/' . self::SUFFIX_P12 . '$/', $filename)) 
+        if (preg_match('/' . self::SUFFIX_P12 . '$/', $filename)) {
             $filename = preg_replace('/' . self::SUFFIX_P12 . '$/', '-cert.pem', $filename);
+            $attributes['pkcs12'] = TRUE;
+        } else {
+            $attributes['pkcs12'] = FALSE;
+        }
         
         if (preg_match('/' . self::SUFFIX_REQUEST . '/', $filename))
             $type = 'req';
         else
             $type = 'x509';
 
-        // Make sure parsing is done in English
-        $options['env'] = 'LANG=en_US';
-        $options['validate_exit_code'] = FALSE;
-
-        // Create array and set some defaults
-        $attributes = array('ca' => FALSE, 'server' => FALSE, 'smime' => FALSE);
-
         // It would be nice to get this all from one call, but you can't count on fields set
         $shell = new Shell();
+        $options['env'] = 'LANG=en_US';
+        $options['validate_exit_code'] = FALSE;
 
         $args = "$type -in $filename -noout -dates";
         if ($shell->execute(SSL::COMMAND_OPENSSL, $args, TRUE, $options) == 0) {
@@ -875,6 +881,23 @@ class SSL extends Engine
                         $attributes['smime'] = TRUE;
                 }
             }
+        }
+
+        // Return file size and cert contents
+        //-----------------------------------
+
+        clearstatcache();
+
+        $attributes['file_size'] = filesize($filename);
+        $attributes['file_contents'] = file_get_contents($filename);
+
+        // TODO: 
+        if (preg_match('/^ca-cert/', $basename)) {
+            $attributes['app'] = 'ca';
+            $attributes['app_description'] = lang('certificate_manager_certificate_authority');
+        } else if (preg_match('/^sys-0/', $basename)) {
+            $attributes['app'] = 'default';
+            $attributes['app_description'] = lang('certificate_manager_default_certificate');
         }
 
         return $attributes;
@@ -1052,6 +1075,86 @@ class SSL extends Engine
             throw new Certificate_Not_Found_Exception();
 
         return $this->configuration[$ca]['certificate'];
+    }
+
+    /**
+     * Returns city.
+     *
+     * @return string city
+     * @throws Engine_Exception
+     */
+
+    public function get_default_city()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $organization = new Organization();
+
+        return $organization->get_city();
+    }
+
+    /**
+     * Returns country.
+     *
+     * @return string country
+     * @throws Engine_Exception
+     */
+
+    public function get_default_country()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $organization = new Organization();
+
+        return $organization->get_country();
+    }
+
+    /**
+     * Returns name of organization.
+     *
+     * @return string name of organization
+     * @throws Engine_Exception
+     */
+
+    public function get_default_organization()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $organization = new Organization();
+
+        return $organization->get_organization();
+    }
+
+    /**
+     * Returns region (state or province).
+     *
+     * @return string region (state or province)
+     * @throws Engine_Exception
+     */
+
+    public function get_default_region()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $organization = new Organization();
+
+        return $organization->get_region();
+    }
+
+    /**
+     * Returns name of organization unit.
+     *
+     * @return string name of organization unit
+     * @throws Engine_Exception
+     */
+
+    public function get_default_unit()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $organization = new Organization();
+
+        return $organization->get_unit();
     }
 
     /**
@@ -1480,7 +1583,7 @@ class SSL extends Engine
         $req_dname = $this->configuration['req']['distinguished_name'];
 
         if (!$default)
-            $this->configuration[$req_dname]['organizationName_default'] = $organization;
+            $this->configuration[$req_dname]['organizationName'] = $organization;
         else
             $this->_set_default_value($req_dname, 'organizationName_default', $organization);
     }
@@ -1507,7 +1610,7 @@ class SSL extends Engine
         $req_dname = $this->configuration['req']['distinguished_name'];
 
         if (!$default)
-            $this->configuration[$req_dname]['organizationalUnitName_default'] = $unit;
+            $this->configuration[$req_dname]['organizationalUnitName'] = $unit;
         else
             $this->_set_default_value($req_dname, 'organizationalUnitName_default', $unit);
     }
@@ -1535,7 +1638,7 @@ class SSL extends Engine
         $req_dname = $this->configuration['req']['distinguished_name'];
 
         if (!$default)
-            $this->configuration[$req_dname]['emailAddress_default'] = $email;
+            $this->configuration[$req_dname]['emailAddress'] = $email;
         else
             $this->_set_default_value($req_dname, 'emailAddress_default', $email);
     }
@@ -1562,7 +1665,7 @@ class SSL extends Engine
         $req_dname = $this->configuration['req']['distinguished_name'];
 
         if (!$default)
-            $this->configuration[$req_dname]['localityName_default'] = $locality;
+            $this->configuration[$req_dname]['localityName'] = $locality;
         else
             $this->_set_default_value($req_dname, 'localityName_default', $locality);
     }
@@ -1589,7 +1692,7 @@ class SSL extends Engine
         $req_dname = $this->configuration['req']['distinguished_name'];
 
         if (!$default)
-            $this->configuration[$req_dname]['stateOrProvinceName_default'] = $state;
+            $this->configuration[$req_dname]['stateOrProvinceName'] = $state;
         else
             $this->_set_default_value($req_dname, 'stateOrProvinceName_default', $state);
     }
@@ -1617,7 +1720,7 @@ class SSL extends Engine
         $req_dname = $this->configuration['req']['distinguished_name'];
 
         if (!$default)
-            $this->configuration[$req_dname]['countryName_default'] = $code;
+            $this->configuration[$req_dname]['countryName'] = $code;
         else
             $this->_set_default_value($req_dname, 'countryName_default', $code);
     }
@@ -1660,7 +1763,7 @@ class SSL extends Engine
 
         $req_dname = $this->configuration['req']['distinguished_name'];
 
-        $this->configuration[$req_dname]['commonName_default'] = $name;
+        $this->configuration[$req_dname]['commonName'] = $name;
     }
 
     /**
@@ -1923,6 +2026,107 @@ class SSL extends Engine
     ///////////////////////////////////////////////////////////////////////////////
     // V A L I D A T I O N   M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Validation routine for city.
+     *
+     * @param string $city city
+     *
+     * @return string error message if city is invalid
+     */
+
+    public function validate_city($city)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $organization = new Organization();
+
+        return $organization->validate_city($city);
+    }
+
+    /**
+     * Validation routine for country.
+     *
+     * @param string $country country
+     *
+     * @return string error message if country is invalid
+     */
+
+    public function validate_country($country)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $organization = new Organization();
+
+        return $organization->validate_country($country);
+    }
+
+    /**
+     * Validation routine for Internet hostname.
+     *
+     * @param string $hostname hostname
+     *
+     * @return string error message if hostname is invalid
+     */
+
+    public function validate_hostname($hostname)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! Network_Utils::is_valid_hostname($hostname))
+            return lang('network_hostname_invalid');
+    }
+
+    /**
+     * Validation routine for organization.
+     *
+     * @param string $organization organization
+     *
+     * @return string error message if organization is invalid
+     */
+
+    public function validate_organization($organization)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $organization = new Organization();
+
+        return $organization->validate_organization($organization);
+    }
+
+    /**
+     * Validation routine for state or province.
+     *
+     * @param string $region region
+     *
+     * @return string error message if region is invalid
+     */
+
+    public function validate_region($region)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $organization = new Organization();
+
+        return $organization->validate_region($region);
+    }
+
+    /**
+     * Validation routine for organization unit.
+     *
+     * @param string $unit organization unit
+     *
+     * @return string error message if unit is invalid
+     */
+
+    public function validate_unit($unit)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $organization = new Organization();
+
+        return $organization->validate_unit($unit);
+    }
 
     /**
      * Validation routine for certificate.
