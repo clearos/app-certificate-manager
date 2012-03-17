@@ -5,7 +5,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 $app['basename'] = 'certificate_manager';
-$app['version'] = '1.0.4';
+$app['version'] = '1.0.9';
 $app['release'] = '1';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
@@ -20,11 +20,14 @@ $app['description'] = lang('certificate_manager_app_description');
 $app['name'] = lang('certificate_manager_app_name');
 $app['category'] = lang('base_category_system');
 $app['subcategory'] = lang('base_subcategory_security');
-$app['menu_enabled'] = FALSE;
 
 /////////////////////////////////////////////////////////////////////////////
 // Controllers
 /////////////////////////////////////////////////////////////////////////////
+
+$app['controllers']['certificate_authority']['title'] = $app['name'];
+$app['controllers']['certificate']['title'] = lang('certificate_authority_certificates');
+$app['controllers']['policy']['title'] = lang('base_app_policy');
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging
@@ -32,34 +35,31 @@ $app['menu_enabled'] = FALSE;
 
 $app['core_requires'] = array(
     'app-network-core', 
+    'app-user-certificates-plugin-core',
+    'csplugin-filewatch',
     'openssl >= 1.0.0'
 );
 
 $app['core_file_manifest'] = array( 
-   'index.txt' => array(
+    'filewatch-certificate-manager-default.conf'=> array('target' => '/etc/clearsync.d/filewatch-certificate-manager-default.conf'),
+    'index.txt' => array(
         'target' => '/etc/pki/CA/index.txt',
-        'mode' => '0644',
-        'owner' => 'root',
-        'group' => 'root',
         'config' => TRUE,
         'config_params' => 'noreplace',
     ),
-
-   'serial' => array(
+    'serial' => array(
         'target' => '/etc/pki/CA/serial',
-        'mode' => '0644',
-        'owner' => 'root',
-        'group' => 'root',
         'config' => TRUE,
         'config_params' => 'noreplace',
     ),
-
-   'openssl.cnf' => array(
+    'openssl.cnf' => array(
         'target' => '/etc/pki/CA/openssl.cnf',
-        'mode' => '0644',
-        'owner' => 'root',
-        'group' => 'root',
         'config' => TRUE,
         'config_params' => 'noreplace',
     ),
+);
+
+$app['core_directory_manifest'] = array(
+    '/var/clearos/certificate_manager' => array(),
+    '/var/clearos/certificate_manager/backup' => array(),
 );

@@ -1,0 +1,18 @@
+#!/bin/sh
+
+if [ "$1" == "default_certificate_event" ]; then
+    logger -p local6.notice -t clearsync "certificate_manager - provisioning default certificate"
+
+    if [ -e /etc/pki/CA/sys-0-cert.pem ]; then
+        TIMESTAMP=`date "+%b-%d-%Y-%T"`
+        cp /usr/clearos/sandbox/etc/httpd/conf/server.crt /var/clearos/certificate_manager/backup/server.crt.$TIMESTAMP
+        cp /etc/pki/CA/sys-0-cert.pem /usr/clearos/sandbox/etc/httpd/conf/server.crt
+
+        cp /usr/clearos/sandbox/etc/httpd/conf/server.key /var/clearos/certificate_manager/backup/server.key.$TIMESTAMP
+        cp /etc/pki/CA/private/sys-0-key.pem /usr/clearos/sandbox/etc/httpd/conf/server.key
+
+        /sbin/service webconfig condrestart
+    fi
+fi
+
+exit 0

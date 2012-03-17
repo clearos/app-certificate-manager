@@ -1,13 +1,13 @@
 <?php
 
 /**
- * Certificate authority view.
+ * Certificate manager policy controller
  *
- * @category   ClearOS
+ * @category   Apps
  * @package    Certificate_Manager
- * @subpackage Views
+ * @subpackage Controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
- * @copyright  2011 ClearFoundation
+ * @copyright  2012 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
  * @link       http://www.clearfoundation.com/docs/developer/apps/certificate_manager/
  */
@@ -25,44 +25,47 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.  
-//  
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
-// Load dependencies
+// B O O T S T R A P
 ///////////////////////////////////////////////////////////////////////////////
 
-$this->lang->load('certificate_manager');
-$this->lang->load('base');
+$bootstrap = getenv('CLEAROS_BOOTSTRAP') ? getenv('CLEAROS_BOOTSTRAP') : '/usr/clearos/framework/shared';
+require_once $bootstrap . '/bootstrap.php';
 
 ///////////////////////////////////////////////////////////////////////////////
-// Form open
+// D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('certificate_manager/edit');
-echo form_header(lang('certificate_manager_certificate'));
+require clearos_app_base('groups') . '/controllers/groups.php';
 
 ///////////////////////////////////////////////////////////////////////////////
-// Form fields and buttons
+// C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
-echo field_input('issued', $attributes['issued'], lang('certificate_manager_issued'), TRUE);
-echo field_input('expires', $attributes['expires'], lang('certificate_manager_expires'), TRUE);
-echo field_input('country', $attributes['country'], lang('certificate_manager_country'), TRUE);
-echo field_input('region', $attributes['region'], lang('certificate_manager_region'), TRUE);
-echo field_input('city', $attributes['city'], lang('certificate_manager_city'), TRUE);
+/**
+ * Certificate manager policy controller
+ *
+ * @category   Apps
+ * @package    Certificate_Manager
+ * @subpackage Controllers
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2012 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/certificate_manager/
+ */
 
-echo field_button_set(
-    array(
-        form_submit_update('submit', 'high'),
-        anchor_javascript('sync', lang('date_synchronize_now'), 'high')
-    )
-);
+class Policy extends Groups
+{
+    /**
+     * Certificate manager policy constructor.
+     */
 
-///////////////////////////////////////////////////////////////////////////////
-// Form close
-///////////////////////////////////////////////////////////////////////////////
-
-echo form_footer();
-echo form_close();
+    function __construct()
+    {
+        parent::__construct('certificate_manager', array('user_certificates_plugin'));
+    }
+}

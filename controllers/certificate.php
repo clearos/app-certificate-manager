@@ -66,6 +66,7 @@ class Certificate extends ClearOS_Controller
 
         try {
             $data['certificates'] = $this->ssl->get_certificates();
+            $ca_exists = $this->ssl->exists_certificate_authority();
         } catch (Engine_Engine_Exception $e) {
             $this->page->view_exception($e);
             return;
@@ -74,7 +75,70 @@ class Certificate extends ClearOS_Controller
         // Load views
         //-----------
 
-        $this->page->view_form('certificate_manager/summary', $data, lang('certificate_manager_certificates'));
+        if ($ca_exists)
+            $this->page->view_form('certificate_manager/summary', $data, lang('certificate_manager_certificates'));
+        else
+            redirect('/certificate_manager/certificate/add/ca');
+    }
+
+    /**
+     * Add view
+     *
+     * @param string $type type of certificate
+     *
+     * @return view
+     */
+
+    function add($type)
+    {
+        $this->_item('add', '', $type);
+    }
+
+    /**
+     * Delete view.
+     *
+     * @param string $certificate certificate
+     *
+     * @return view
+     */
+
+    function delete($certificate)
+    {
+        $confirm_uri = '/app/certificate_manager/certificate/destroy/' . $certificate;
+        $cancel_uri = '/app/certificate_manager/certificate';
+        $items = array($certificate);
+
+        $this->page->view_confirm_delete($confirm_uri, $cancel_uri, $items);
+    }
+
+    /**
+     * Destroys view.
+     *
+     * @param string $certificate IP address
+     *
+     * @return view
+     */
+
+    function destroy($certificate = NULL)
+    {
+        // Load libraries
+        //---------------
+
+        $this->lang->load('certificate_manager');
+        $this->load->library('certificate_manager/SSL');
+
+        // Handle delete
+        //--------------
+
+        try {
+            $this->ssl->delete_certificate($certificate);
+
+            $this->page->set_status_deleted();
+            redirect('/certificate_manager/certificate');
+        } catch (Exception $e) {
+            $this->page->view_exception($e);
+            return;
+        }
     }
 
     /**
@@ -88,52 +152,6 @@ class Certificate extends ClearOS_Controller
         $this->_install_download('download', $certificate);
     }
 
-    function edit($certificate)
-    {
-        // Load dependencies
-        //------------------
-
-        $this->lang->load('certificate_manager');
-        $this->load->library('certificate_manager/SSL');
-
-        // Handle form submit
-        //-------------------
-
-        if ($this->input->post('submit')) {
-            try {
-/*
-                $this->pptpd->set_remote_ip($this->input->post('remote_ip'));
-                $this->pptpd->set_local_ip($this->input->post('local_ip'));
-                $this->pptpd->set_domain($this->input->post('domain'));
-                $this->pptpd->set_wins_server($this->input->post('wins'));
-                $this->pptpd->set_dns_server($this->input->post('dns'));
-                $this->pptpd->reset(TRUE);
-*/
-
-                $this->page->set_status_updated();
-            } catch (Engine_Exception $e) {
-                $this->page->view_exception($e);
-                return;
-            }
-        }
-
-        // Load view data
-        //---------------
-
-        try {
-            $data['certificate'] = $certificate;
-            $data['attributes'] = $this->ssl->get_certificate_attributes($certificate);
-        } catch (Engine_Exception $e) {
-            $this->page->view_exception($e);
-            return;
-        }
-
-        // Load views
-        //-----------
-
-        $this->page->view_form('certificate_manager/certificate', $data, lang('certificate_manager_certificate'));
-    }
-
     /**
      * Installs certificate on requesting client.
      *
@@ -145,6 +163,23 @@ class Certificate extends ClearOS_Controller
         $this->_install_download('install', $certificate);
     }
 
+    /**
+     * View view.
+     *
+     * @return view
+     */
+
+    function view($certificate)
+    {
+        $this->_item('view', $certificate);
+    }
+
+    /**
+     * Common install/download method.
+     *
+     * @return string certificate
+     */
+    
     function _install_download($type, $certificate)
     {
         // Load dependencies
@@ -185,5 +220,110 @@ class Certificate extends ClearOS_Controller
         }
 
         echo $attributes['file_contents'];
+    }
+
+    /**
+     * Common view/edit form.
+     *
+     * @param string $form_type   form type
+     * @parma string $certificate certificate
+     * @param string $type        certificate type
+     *
+     * @return view
+     */
+
+    function _item($form_type, $certificate, $type)
+    {
+        // Load dependencies
+        //------------------
+
+        $this->lang->load('organization');
+        $this->lang->load('certificate_manager');
+        $this->load->library('base/Country');
+        $this->load->library('certificate_manager/SSL');
+
+        // Set validation rules
+        //---------------------
+         
+        $this->form_validation->set_policy('hostname', 'certificate_manager/SSL', 'validate_hostname', TRUE);
+        $this->form_validation->set_policy('organization', 'certificate_manager/SSL', 'validate_organization', TRUE);
+        $this->form_validation->set_policy('unit', 'certificate_manager/SSL', 'validate_unit', TRUE);
+        $this->form_validation->set_policy('city', 'certificate_manager/SSL', 'validate_city', TRUE);
+        $this->form_validation->set_policy('region', 'certificate_manager/SSL', 'validate_region', TRUE);
+        $this->form_validation->set_policy('country', 'certificate_manager/SSL', 'validate_country', TRUE);
+        $form_ok = $this->form_validation->run();
+
+        // Handle form submit
+        //-------------------
+
+        if (($this->input->post('submit') && $form_ok)) {
+            try {
+                if ($type === 'ca') {
+                    $this->ssl->initialize(
+                        $this->input->post('hostname'),
+                        $this->input->post('hostname'), // FIXME -- domain name
+                        $this->input->post('organization'),
+                        $this->input->post('unit'),
+                        $this->input->post('city'),
+                        $this->input->post('region'),
+                        $this->input->post('country')
+                    );
+                }
+
+                $this->page->set_status_updated();
+                redirect('/certificate_manager/certificate');
+            } catch (Exception $e) {
+                $this->page->view_exception($e);
+                return;
+            }
+        }
+
+        // Load view data
+        //---------------
+
+        try {
+            $data['form_type'] = $form_type;
+            $data['certificate'] = $certificate;
+
+            if ($form_type === 'add') {
+                $data['type'] = $type;
+                $data['organization'] = $this->ssl->get_default_organization();
+                $data['unit'] = $this->ssl->get_default_unit();
+                $data['city'] = $this->ssl->get_default_city();
+                $data['region'] = $this->ssl->get_default_region();
+                $data['country'] = $this->ssl->get_default_country();
+            } else {
+                $attributes = $this->ssl->get_certificate_attributes($certificate);
+
+                $data['type'] = $attributes['type'];
+                $data['organization'] = $attributes['org_name'];
+                $data['unit'] = $attributes['org_unit'];
+                $data['city'] = $attributes['city'];
+                $data['region'] = $attributes['region'];
+                $data['country'] = $attributes['country'];
+            }
+
+            $data['types'] = array(
+                'user' => lang('certificate_manager_certificate_authority'),
+                'server' => lang('certificate_manager_certificate_authority'),
+            );
+
+            $data['countries'] = $this->country->get_list();
+            $data['countries']['0'] = ' -- ' . lang('base_not_specified') . ' -- ';
+            asort($data['countries']);
+        } catch (Exception $e) {
+            $this->page->view_exception($e);
+            return;
+        }
+
+        // Load views
+        //-----------
+
+        if (($type === 'ca') && ($form_type === 'add'))
+            $options['type'] = MY_Page::TYPE_REPORT;
+        else
+            $options = array();
+
+        $this->page->view_form('certificate_manager/item', $data, lang('certificate_manager_certificate'), $options);
     }
 }

@@ -34,38 +34,81 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 $this->lang->load('base');
-$this->lang->load('organization');
+$this->lang->load('certificate_manager');
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form handler
 ///////////////////////////////////////////////////////////////////////////////
 
-$form_mode = 'edit';
-
-if ($form_mode === 'edit') {
+if ($form_type === 'add') {
     $read_only = FALSE;
-    $buttons = array(
-        form_submit_update('submit'),
-        anchor_cancel('/app/organization')
-    );
+    $form = 'certificate_manager/certificate/add/' . $type;
+
+    if ($type === 'ca') {
+        $buttons = array(
+            form_submit_custom('submit', lang('certificate_manager_create_certificate'))
+        );
+    } else {
+        $buttons = array(
+            form_submit_add('submit'),
+            anchor_cancel('/app/certificate_manager/certificate')
+        );
+    }
 } else {
     $read_only = TRUE;
+    $form = 'certificate_manager/certificate';
     $buttons = array(
-        anchor_edit('/app/organization/edit')
+        anchor_custom('/app/certificate_manager/certificate/install/' . $certificate, lang('base_install')),
+        anchor_custom('/app/certificate_manager/certificate/download/' . $certificate, lang('base_download')),
+        anchor_custom('/app/certificate_manager/certificate/delete/' . $certificate, lang('base_delete')),
+        anchor_cancel('/app/certificate_manager/certificate')
     );
+}
+
+if ($type === 'ca') {
+    $title = lang('certificate_manager_certificate_authority');
+    $type_text = lang('certificate_manager_certificate_authority');
+} else {
+    $title = lang('certificate_manager_certificate');
+    $type_text = lang('certificate_manager_server_certificate');
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Infobox help
+///////////////////////////////////////////////////////////////////////////////
+
+if (($type === 'ca') && ($form_type === 'add')) {
+    echo infobox_highlight($title, "
+        <table>
+            <tr>
+                <td valign='top'>
+                    <p>" . lang('certificate_manager_certificate_authority_help') . "</p>
+                    <p style='color:red'><b>" . lang('certificate_manager_certificate_change_warning') . "</b></p>
+                </td>
+                <td width='460' align='center'><img src='" . clearos_app_htdocs('certificate_manager') . "/certwarning.png'  alt=''></td>
+            </tr>
+        </table>
+    ");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('certificate_manager/initialize');
-echo form_header(lang('certificate_manager_certificate'));
+echo form_open($form);
+echo form_header($title);
 
-echo field_input('hostname', $hostname, lang('certificate_manager_internet_hostname'), $read_only);
+echo field_view(lang('certificate_manager_certificate_type'), $type_text);
+
+if ($form_type === 'add')
+    echo field_input('hostname', $hostname, lang('certificate_manager_internet_hostname'), $read_only);
+
 echo field_input('organization', $organization, lang('organization_organization'), $read_only);
 echo field_input('unit', $unit, lang('organization_unit'), $read_only);
-echo field_input('city', $city, lang('organization_city'), $read_only);
+
+if ($form_type === 'add')
+    echo field_input('city', $city, lang('organization_city'), $read_only);
+
 echo field_input('region', $region, lang('organization_region'), $read_only);
 echo field_dropdown('country', $countries, $country, lang('organization_country'), $read_only);
 

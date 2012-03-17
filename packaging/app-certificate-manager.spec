@@ -1,7 +1,7 @@
 
 Name: app-certificate-manager
 Epoch: 1
-Version: 1.0.4
+Version: 1.0.9
 Release: 1%{dist}
 Summary: Certificate Manager
 License: GPLv3
@@ -20,6 +20,8 @@ License: LGPLv3
 Group: ClearOS/Libraries
 Requires: app-base-core
 Requires: app-network-core
+Requires: app-user-certificates-plugin-core
+Requires: csplugin-filewatch
 Requires: openssl >= 1.0.0
 
 %description core
@@ -35,6 +37,9 @@ This package provides the core API and libraries.
 mkdir -p -m 755 %{buildroot}/usr/clearos/apps/certificate_manager
 cp -r * %{buildroot}/usr/clearos/apps/certificate_manager/
 
+install -d -m 0755 %{buildroot}/var/clearos/certificate_manager
+install -d -m 0755 %{buildroot}/var/clearos/certificate_manager/backup
+install -D -m 0644 packaging/filewatch-certificate-manager-default.conf %{buildroot}/etc/clearsync.d/filewatch-certificate-manager-default.conf
 install -D -m 0644 packaging/index.txt %{buildroot}/etc/pki/CA/index.txt
 install -D -m 0644 packaging/openssl.cnf %{buildroot}/etc/pki/CA/openssl.cnf
 install -D -m 0644 packaging/serial %{buildroot}/etc/pki/CA/serial
@@ -77,9 +82,12 @@ exit 0
 %exclude /usr/clearos/apps/certificate_manager/packaging
 %exclude /usr/clearos/apps/certificate_manager/tests
 %dir /usr/clearos/apps/certificate_manager
+%dir /var/clearos/certificate_manager
+%dir /var/clearos/certificate_manager/backup
 /usr/clearos/apps/certificate_manager/deploy
 /usr/clearos/apps/certificate_manager/language
 /usr/clearos/apps/certificate_manager/libraries
+/etc/clearsync.d/filewatch-certificate-manager-default.conf
 %config(noreplace) /etc/pki/CA/index.txt
 %config(noreplace) /etc/pki/CA/openssl.cnf
 %config(noreplace) /etc/pki/CA/serial

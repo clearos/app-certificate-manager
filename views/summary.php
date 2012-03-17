@@ -33,6 +33,8 @@
 // Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
 
+use \clearos\apps\certificate_manager\SSL as SSL;
+
 $this->lang->load('certificate_manager');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -49,11 +51,14 @@ $headers = array(
 ///////////////////////////////////////////////////////////////////////////////
 
 foreach ($certificates as $cert => $details) {
+    // Skip user certificates
+    if ($details['type'] === SSL::CERT_TYPE_USER)
+        continue;
 
     $item['title'] = $cert;
-    $item['action'] = '/app/certificate_manager/certificate/edit/' . $cert;
+    $item['action'] = '/app/certificate_manager/certificate/view/' . $cert;
     $item['anchors'] = button_set(
-        array(anchor_edit('/app/certificate_manager/certificate/edit/' . $cert, 'high'))
+        array(anchor_view('/app/certificate_manager/certificate/view/' . $cert, 'high'))
     );
     $item['details'] = array(
         $details['app_description'],

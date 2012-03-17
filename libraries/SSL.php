@@ -179,6 +179,7 @@ class SSL extends Engine
     const DEFAULT_DH_KEY_SIZE = 2048;
 
     // Certificate types and prefixes
+    const CERT_TYPE_CA = 'ca';
     const CERT_TYPE_CUSTOM = 'custom';
     const CERT_TYPE_SERVER = 'server';
     const CERT_TYPE_USER = 'user';
@@ -784,12 +785,12 @@ class SSL extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         // Ensure file/certificate exists
-        if (! preg_match('/\//', $basename))
-            $filename = self::PATH_SSL . '/' . $basename;
-        else
+        if (preg_match('/^\//', $basename))
             $filename = $basename;
+        else
+            $filename = self::PATH_SSL . '/' . $basename;
 
-        $file = new File($filename);
+        $file = new File($filename, TRUE);
 
         if (! $file->exists())
             throw new Certificate_Not_Found_Exception();
@@ -883,15 +884,38 @@ class SSL extends Engine
             }
         }
 
+        // Set type
+        //---------
+
+        if (preg_match('/^' . self::PREFIX_CLIENT_LOCAL . '/', $basename))
+            $attributes['type'] = self::CERT_TYPE_USER;
+        else if (preg_match('/^' . self::PREFIX_SERVER_LOCAL . '/', $basename))
+            $attributes['type'] = self::CERT_TYPE_SERVER;
+        else if ($attributes['ca'])
+            $attributes['type'] =  self::CERT_TYPE_CA;
+
         // Return file size and cert contents
         //-----------------------------------
 
         clearstatcache();
 
-        $attributes['file_size'] = filesize($filename);
-        $attributes['file_contents'] = file_get_contents($filename);
+        $temp_name = preg_replace('/.*\//', '', $basename);
+        $temp_name = '/var/tmp/' . mt_rand() . '-' . $temp_name;
 
-        // TODO: 
+        $file->copy_to($temp_name);
+
+        $temp_file = new File($temp_name);
+        $temp_file->chown('root', 'webconfig');
+        $temp_file->chmod('0660');
+
+        $attributes['file_size'] = filesize($temp_name);
+
+        $file_handle = fopen($temp_name, 'r');
+        $attributes['file_contents'] = fread($file_handle, filesize($temp_name));
+        fclose($handle);
+
+        $temp_file->delete();
+
         if (preg_match('/^ca-cert/', $basename)) {
             $attributes['app'] = 'ca';
             $attributes['app_description'] = lang('certificate_manager_certificate_authority');
