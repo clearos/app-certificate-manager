@@ -1,7 +1,7 @@
 <?php
 
 $lang['certificate_manager_app_name'] = 'Certificate Manager';
-$lang['certificate_manager_app_description'] = 'Certificate Manager description'; // FIXME
+$lang['certificate_manager_app_description'] = 'SSL certificates are the industry standard for encrypting information sent over a network and can also be used to provide authentication, as in the case of SMIME email signature signing.  The Certificate Manager app provides an administrator with the ability create, manage and deploy SSL certificates to users and devices within an organization.';
 $lang['certificate_manager_certificate_authority'] = 'Certificate Authority';
 $lang['certificate_manager_certificate'] = 'Certificate';
 $lang['certificate_manager_certificates'] = 'Certificates';
