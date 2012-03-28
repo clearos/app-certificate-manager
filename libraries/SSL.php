@@ -70,6 +70,10 @@ use \clearos\apps\base\File as File;
 use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\base\Shell as Shell;
 use \clearos\apps\certificate_manager\SSL as SSL;
+use \clearos\apps\clearsync\ClearSyncd as ClearSyncd;
+use \clearos\apps\mode\Mode_Engine as Mode_Engine;
+use \clearos\apps\mode\Mode_Factory as Mode_Factory;
+use \clearos\apps\network\Domain as Domain;
 use \clearos\apps\network\Hostname as Hostname;
 use \clearos\apps\network\Network_Utils as Network_Utils;
 use \clearos\apps\organization\Organization as Organization;
@@ -79,6 +83,10 @@ clearos_load_library('base/File');
 clearos_load_library('base/Folder');
 clearos_load_library('base/Shell');
 clearos_load_library('certificate_manager/SSL');
+clearos_load_library('clearsync/ClearSyncd');
+clearos_load_library('mode/Mode_Engine');
+clearos_load_library('mode/Mode_Factory');
+clearos_load_library('network/Domain');
 clearos_load_library('network/Hostname');
 clearos_load_library('network/Network_Utils');
 clearos_load_library('organization/Organization');
@@ -86,6 +94,7 @@ clearos_load_library('organization/Organization');
 // Exceptions
 //-----------
 
+use \Exception as Exception;
 use \clearos\apps\base\Engine_Exception as Engine_Exception;
 use \clearos\apps\base\Validation_Exception as Validation_Exception;
 use \clearos\apps\certificate_manager\Certificate_Already_Exists_Exception as Certificate_Already_Exists_Exception;
@@ -169,6 +178,7 @@ class SSL extends Engine
     const FILE_CA_KEY = '/etc/pki/CA/private/ca-key.pem';
     const FILE_DH_PREFIX = 'dh';
     const FILE_DH_SUFFIX = '.pem';
+    const FILE_CLEARSYNC = '/etc/clearsync.d/filesync-certificate-manager.conf';
 
     // Commands
     const COMMAND_OPENSSL = '/usr/bin/openssl';
@@ -390,8 +400,9 @@ class SSL extends Engine
         // TODO validate
 
         $organization = new Organization();
+        $domain_object = new Domain();
 
-        // FIXME: $domain = $organization->GetDomain();
+        $domain = $domain_object->get_default();
         $org_name = $organization->get_organization();
         $org_unit = $organization->get_unit();
         $city = $organization->get_city();
@@ -681,7 +692,7 @@ class SSL extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // FIXME Validation
+        // TODO Validation
 
         if (! $this->is_loaded)
             $this->configuration = $this->_load_configuration();
@@ -1134,6 +1145,22 @@ class SSL extends Engine
     }
 
     /**
+     * Returns default hostname.
+     *
+     * @return string hostname
+     * @throws Engine_Exception
+     */
+
+    public function get_default_hostname()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $hostname = new Hostname();
+
+        return $hostname->get_internet_hostname();
+    }
+
+    /**
      * Returns name of organization.
      *
      * @return string name of organization
@@ -1301,9 +1328,9 @@ class SSL extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         $organization = new Organization();
+        $domain_object = new Domain();
 
-        // FIXME $domain = empty($domain) ? $organization->GetDomain() : $domain;
-        $domain = 'example.com';
+        $domain = empty($domain) ? $domain_object->get_default() : $domain;
         $orgname = empty($orgname) ? $organization->get_organization() : $orgname;
         $unit = empty($unit) ? $organization->get_unit() : $unit;
         $city = empty($city) ? $organization->get_city() : $city;
@@ -1318,18 +1345,31 @@ class SSL extends Engine
         $ca_exists = $this->exists_certificate_authority();
 
         if (!$ca_exists) {
-            $ssl = new SSL();
-            $ssl->set_rsa_key_size(self::DEFAULT_KEY_SIZE);
-            $ssl->set_common_name("ca." . $domain);
-            $ssl->set_organization_name($orgname);
-            $ssl->set_organizational_unit($unit);
-            $ssl->set_email_address("security@" . $domain);
-            $ssl->set_locality($city);
-            $ssl->set_state_or_province($region);
-            $ssl->set_country_code($country);
-            $ssl->set_term(SSL::TERM_10YEAR); 
+            $mode_object = Mode_Factory::create();
 
-            $ssl->create_certificate_authority();
+            $mode = $mode_object->get_mode();
+
+            if (($mode === Mode_Engine::MODE_MASTER) || ($mode === Mode_Engine::MODE_STANDALONE)) {
+                // Create CA
+                $ssl = new SSL();
+                $ssl->set_rsa_key_size(self::DEFAULT_KEY_SIZE);
+                $ssl->set_common_name('ca.' . $domain);
+                $ssl->set_organization_name($orgname);
+                $ssl->set_organizational_unit($unit);
+                $ssl->set_email_address('security@' . $domain);
+                $ssl->set_locality($city);
+                $ssl->set_state_or_province($region);
+                $ssl->set_country_code($country);
+                $ssl->set_term(SSL::TERM_10YEAR); 
+
+                $ssl->create_certificate_authority();
+
+                // Create filesync entity if in master mode
+                if ($mode === Mode_Engine::MODE_MASTER)
+                    $this->_write_clearsync_master_configlet($mode);
+            } else if ($mode === Mode_Engine::MODE_SLAVE) {
+                $this->_write_clearsync_slave_configlet($mode);
+            }
         }
 
         $syscert_exists = $this->exists_system_certificate();
@@ -1339,7 +1379,7 @@ class SSL extends Engine
             $ssl->set_rsa_key_size(self::DEFAULT_KEY_SIZE);
             $ssl->set_organization_name($orgname);
             $ssl->set_organizational_unit($unit);
-            $ssl->set_email_address("security@" . $domain);
+            $ssl->set_email_address('security@' . $domain);
             $ssl->set_locality($city);
             $ssl->set_state_or_province($region);
             $ssl->set_country_code($country);
@@ -1373,18 +1413,18 @@ class SSL extends Engine
         // Put cert in array for dump_contents_from_array method
         $cert_in_array = array($cert);
 
-        $file = new File(SSL::PATH_SSL . "/" . $filename);
+        $file = new File(SSL::PATH_SSL . '/' . $filename);
         if (!$file->exists())
             throw new Certificate_Not_Found_Exception();
 
         $cert_filename = preg_replace('/-req.pem$/', '-cert.pem', $filename);
 
-        $cert_file = new File(SSL::PATH_SSL . "/" . $cert_filename);
+        $cert_file = new File(SSL::PATH_SSL . '/' . $cert_filename);
 
         if ($cert_file->exists())
             $cert_file->delete();
 
-        $cert_file->create("root", "root", "0600");
+        $cert_file->create('root', 'root', '0600');
         $cert_file->dump_contents_from_array($cert_in_array);
 
         // Delete request
@@ -1405,7 +1445,7 @@ class SSL extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         $pkcs12 = preg_replace('/-cert.pem$/', '.p12', $filename);
-        $file = new File(self::PATH_SSL . "/" . $pkcs12);
+        $file = new File(self::PATH_SSL . '/' . $pkcs12);
 
         if ($file->exists())
             return TRUE;
@@ -1430,7 +1470,7 @@ class SSL extends Engine
         $ca = self::FILE_CA_CRT;
 
         // Cert
-        $cert = self::PATH_SSL . "/" . $filename;
+        $cert = self::PATH_SSL . '/' . $filename;
 
         // Check that CA exists
         $file = new File($ca);
@@ -1467,6 +1507,27 @@ class SSL extends Engine
     }
 
     /**
+     * Returns state of master/slave mode.
+     *
+     * @return boolean TRUE if slave system
+     * @throws Engine_Exception
+     */
+
+    public function is_slave()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $mode_object = Mode_Factory::create();
+
+        $mode = $mode_object->get_mode();
+
+        if ($mode === Mode_Engine::MODE_SLAVE)
+            return TRUE;
+        else
+            return FALSE;
+    }
+
+    /**
      * Renews a certificate.
      *
      * @param string  $filename certificate filename
@@ -1493,7 +1554,7 @@ class SSL extends Engine
         $timestamp = time();
         $start_date = date("ymdhis\Z", $timestamp);
 
-        // FIXME
+        // TODO: messy?
         if (isset($cert['smime']) && $cert['smime'])
             $this->set_purpose(self::PURPOSE_CLIENT_CUSTOM);
         else
@@ -1515,7 +1576,6 @@ class SSL extends Engine
         $this->set_country_code($cert['country']);
 
         // Force filename
-        // FIXME
         $req_filename = $this->create_certificate_request($cert['common_name'], $filename);
         if (! $this->is_signed_by_local_ca($filename))
             return;
@@ -1543,7 +1603,7 @@ class SSL extends Engine
         $id = NULL;
 
         // Don't revoke a CA cert...it's not in the index
-        // FIXME: now full path
+        // TODO: now full path
         if ($filename == self::FILE_CA_CRT)
             return;
 
@@ -1575,8 +1635,12 @@ class SSL extends Engine
         }
         
         if ($id != NULL) {
-            $args = "ca -revoke " . self::PATH_SSL . "/newcerts/$id.pem -config " . self::FILE_CONF;
-            $shell->execute(SSL::COMMAND_OPENSSL, $args, TRUE);
+            try {
+                $args = "ca -revoke " . self::PATH_SSL . "/newcerts/$id.pem -config " . self::FILE_CONF;
+                $shell->execute(SSL::COMMAND_OPENSSL, $args, TRUE);
+            } catch (Exception $e) {
+                // Keep going...
+            }
 
             // Revoke was successful
             $file = new File(self::PATH_SSL . "/" . preg_replace('/-cert.pem$/', '.p12', $filename));
@@ -2008,8 +2072,8 @@ class SSL extends Engine
         $this->set_start_date(date("ymdhis\Z", strtotime($cert['issued'])));
         $this->set_end_date(date("ymdhis\Z", strtotime($cert['expires'])));
 
-        //  Need purpose
-        // FIXME
+        // Need purpose
+        // TODO
         if (isset($cert['smime']) && $cert['smime'])
             $this->set_purpose(self::PURPOSE_CLIENT_CUSTOM);
         else
@@ -2479,5 +2543,102 @@ class SSL extends Engine
         $req_v3 = $this->configuration['req']['req_extensions'];
 
         $this->configuration[$req_v3]['nsCertType'] = $type;
+    }
+
+    /**
+     * Writes clearsync master configlet.
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    protected function _write_clearsync_master_configlet()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        // Grab file sync key
+        //-------------------
+
+        $mode_object = Mode_Factory::create();
+        $key = $mode_object->get_file_sync_key();
+
+        // Set our file sync configuration
+        //--------------------------------
+
+        $file = new File(self::FILE_CLEARSYNC);
+
+        $contents = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>
+<!-- ClearSync Certificate Manager FileSync Plugin Configuration -->
+<plugin name=\"CertificateManagerFileSync\" library=\"libcsplugin-filesync.so\" stack-size=\"65536\">
+
+<authkey>$key</authkey>
+
+<master bind=\"0.0.0.0\" port=\"8154\">
+  <file name=\"certficate-authority\">/etc/pki/CA/ca-cert.pem</file>
+</master>
+
+</plugin>
+<!--
+  vi: syntax=xml expandtab shiftwidth=2 softtabstop=2 tabstop=2
+-->
+";
+
+        if ($file->exists())
+            $file->delete();
+
+        $file->create('root', 'clearsync', '0640');
+        $file->add_lines($contents);
+
+        $clearsync = new ClearSyncd();
+        $clearsync->reset();
+    }
+
+    /**
+     * Writes clearsync slave configlet.
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    protected function _write_clearsync_slave_configlet()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        // Grab file sync key
+        //-------------------
+
+        $mode_object = Mode_Factory::create();
+        $file_sync_key = $mode_object->get_file_sync_key();
+        $master_hostname = $mode_object->get_master_hostname();
+
+        // Set our file sync configuration
+        //--------------------------------
+
+        $file = new File(self::FILE_CLEARSYNC);
+
+        $contents = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>
+<!-- ClearSync Certificate Manager FileSync Plugin Configuration -->
+<plugin name=\"CertificateManagerFileSync\" library=\"libcsplugin-filesync.so\" stack-size=\"65536\">
+
+<authkey>$file_sync_key</authkey>
+
+<slave host=\"$master_hostname\" port=\"8154\" interval=\"60\">
+  <file name=\"certficate-authority\" presync=\"\" postsync=\"\">/etc/pki/CA/ca-cert.pem</file>
+</slave>
+
+</plugin>
+<!--
+  vi: syntax=xml expandtab shiftwidth=2 softtabstop=2 tabstop=2
+-->
+";
+
+        if ($file->exists())
+            $file->delete();
+
+        $file->create('root', 'clearsync', '0640');
+        $file->add_lines($contents);
+
+        $clearsync = new ClearSyncd();
+        $clearsync->reset();
     }
 }

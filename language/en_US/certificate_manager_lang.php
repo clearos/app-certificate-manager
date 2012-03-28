@@ -1,7 +1,8 @@
 <?php
 
 $lang['certificate_manager_app_name'] = 'Certificate Manager';
-$lang['certificate_manager_app_description'] = 'SSL certificates are the industry standard for encrypting information sent over a network and can also be used to provide authentication, as in the case of SMIME email signature signing.  The Certificate Manager app provides an administrator with the ability create, manage and deploy SSL certificates to users and devices within an organization.';
+$lang['certificate_manager_app_description'] = 'Security certificates are an industry standard for encrypting information sent over a network, providing authentication and enabling digital signatures.  The Certificate Manager app provides the ability create, manage and deploy Security certificates to users and apps.';
+$lang['certificate_manager_certificate_manager'] = 'Certificate Manager';
 $lang['certificate_manager_certificate_authority'] = 'Certificate Authority';
 $lang['certificate_manager_certificate'] = 'Certificate';
 $lang['certificate_manager_certificates'] = 'Certificates';
@@ -19,7 +20,13 @@ $lang['certificate_manager_internet_hostname'] = 'Internet Hostname';
 $lang['certificate_manager_default_certificate'] = 'Default Certificate';
 $lang['certificate_manager_certificate_type'] = 'Certificate Type';
 $lang['certificate_manager_certificate_authority_help'] = 'In order to enhance the overall security of your system, security certificates are required for accessing many apps.  You are probably used to seeing the certificate warning in your web browser similar to the screenshot shown.  Starting with the creation of the Certificate Authority, your journey with security certficates begins!';
+$lang['certificate_manager_wizard_description'] = 'In order to enhance the overall security of your system, security certificates are required for accessing many apps.';
 $lang['certificate_manager_certificate_change_warning'] = 'After creating your default certificates, your web browser may be temporarily disconnected. Please do not be alarmed if you see security or connection warning messages after the update.';
 $lang['certificate_manager_security_certificates'] = 'Security Certificates';
 $lang['certificate_manager_server_certificate'] = 'Server Certificate';
 $lang['certificate_manager_create_certificate'] = 'Create Certificate';
+$lang['certificate_manager_security_is_important'] = 'Security is Important';
+$lang['certificate_manager_warning'] = 'Warning';
+$lang['certificate_manager_system_waiting_for_connection_to_master'] = 'The system is waiting for a connection to the master node.';
+$lang['certificate_manager_web_browser_warning'] = 'Web Browser Warning';
+$lang['certificate_manager_web_browser_warning_description'] = 'In a few seconds, this web interface will restart using the security certificates that you just created.  You will see a warning in your web browser similar to the screenshot below.   All is well, and you can proceed safely.';

@@ -48,7 +48,7 @@
 class Certificate extends ClearOS_Controller
 {
     /**
-     * CA controller
+     * Certificate controller
      *
      * @return view
      */
@@ -67,6 +67,7 @@ class Certificate extends ClearOS_Controller
         try {
             $data['certificates'] = $this->ssl->get_certificates();
             $ca_exists = $this->ssl->exists_certificate_authority();
+            $is_slave = $this->ssl->is_slave();
         } catch (Engine_Engine_Exception $e) {
             $this->page->view_exception($e);
             return;
@@ -77,6 +78,8 @@ class Certificate extends ClearOS_Controller
 
         if ($ca_exists)
             $this->page->view_form('certificate_manager/summary', $data, lang('certificate_manager_certificates'));
+        else if ($is_slave)
+            redirect('/certificate_manager/certificate/slave_info');
         else
             redirect('/certificate_manager/certificate/add/ca');
     }
@@ -150,6 +153,17 @@ class Certificate extends ClearOS_Controller
     function download($certificate)
     {
         $this->_install_download('download', $certificate);
+    }
+
+    /**
+     * Shows information when in slave mode.
+     *
+     * @return view
+     */
+
+    function slave_info()
+    {
+        $this->page->view_form('certificate_manager/slave_info', $data, lang('certificate_manager_certificates'));
     }
 
     /**
@@ -256,7 +270,7 @@ class Certificate extends ClearOS_Controller
         // Handle form submit
         //-------------------
 
-        if (($this->input->post('submit') && $form_ok)) {
+        if (($this->input->post('hostname') && $form_ok)) {
             try {
                 if ($type === 'ca') {
                     $this->ssl->initialize(
@@ -271,7 +285,11 @@ class Certificate extends ClearOS_Controller
                 }
 
                 $this->page->set_status_updated();
-                redirect('/certificate_manager/certificate');
+
+                if ($this->session->userdata['wizard_redirect'])
+                    redirect('/certificate_manager/certificate/warning');
+                else
+                    redirect('/certificate_manager/certificate');
             } catch (Exception $e) {
                 $this->page->view_exception($e);
                 return;
@@ -287,6 +305,7 @@ class Certificate extends ClearOS_Controller
 
             if ($form_type === 'add') {
                 $data['type'] = $type;
+                $data['hostname'] = $this->ssl->get_default_hostname();
                 $data['organization'] = $this->ssl->get_default_organization();
                 $data['unit'] = $this->ssl->get_default_unit();
                 $data['city'] = $this->ssl->get_default_city();
@@ -319,11 +338,31 @@ class Certificate extends ClearOS_Controller
         // Load views
         //-----------
 
-        if (($type === 'ca') && ($form_type === 'add'))
-            $options['type'] = MY_Page::TYPE_REPORT;
-        else
-            $options = array();
+        $this->page->view_form('certificate_manager/item', $data, lang('certificate_manager_certificate'));
+    }
 
-        $this->page->view_form('certificate_manager/item', $data, lang('certificate_manager_certificate'), $options);
+    /**
+     * Warning view.
+     *
+     * @return view
+     */
+
+    function warning()
+    {
+        $this->page->view_form('certificate_manager/warning', array(), lang('base_warning'));
+    }
+
+    /**
+     * Redirects for wizard navigation.
+     *
+     * A helper for javascript for sending the "next" button to the 
+     * next page in the wizard.
+     *
+     * @return redirect
+     */
+
+    function wizard_redirect()
+    {
+        redirect($this->session->userdata('wizard_redirect'));
     }
 }

@@ -30,7 +30,7 @@ default_days                   = 9125
 default_crl_days               = 30
 default_md                     = default
 preserve                       = no
-policy                         = policy_match
+policy                         = policy_anything
 
 [ policy_match ]
 countryName                    = match

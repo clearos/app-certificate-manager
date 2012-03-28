@@ -12,7 +12,7 @@ Requires: %{name}-core = 1:%{version}-%{release}
 Requires: app-base
 
 %description
-Certificate Manager description
+Security certificates are an industry standard for encrypting information sent over a network, providing authentication and enabling digital signatures.  The Certificate Manager app provides the ability create, manage and deploy Security certificates to users and apps.
 
 %package core
 Summary: Certificate Manager - APIs and install
@@ -20,12 +20,12 @@ License: LGPLv3
 Group: ClearOS/Libraries
 Requires: app-base-core
 Requires: app-network-core
-Requires: app-user-certificates-plugin-core
-Requires: csplugin-filewatch
+Requires: app-clearsync-core
+Requires: csplugin-filesync
 Requires: openssl >= 1.0.0
 
 %description core
-Certificate Manager description
+Security certificates are an industry standard for encrypting information sent over a network, providing authentication and enabling digital signatures.  The Certificate Manager app provides the ability create, manage and deploy Security certificates to users and apps.
 
 This package provides the core API and libraries.
 

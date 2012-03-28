@@ -46,11 +46,11 @@ if ($form_type === 'add') {
 
     if ($type === 'ca') {
         $buttons = array(
-            form_submit_custom('submit', lang('certificate_manager_create_certificate'))
+            form_submit_custom('submit-form', lang('certificate_manager_create_certificate'))
         );
     } else {
         $buttons = array(
-            form_submit_add('submit'),
+            form_submit_add('submit-form'),
             anchor_cancel('/app/certificate_manager/certificate')
         );
     }
@@ -77,25 +77,35 @@ if ($type === 'ca') {
 // Infobox help
 ///////////////////////////////////////////////////////////////////////////////
 
+/*
 if (($type === 'ca') && ($form_type === 'add')) {
-    echo infobox_highlight($title, "
-        <table>
-            <tr>
+    // In wizard mode, the text is shown in the side bar.
+    if (isset($this->session->userdata['wizard'])) {
+        $blurb = "
                 <td valign='top'>
                     <p>" . lang('certificate_manager_certificate_authority_help') . "</p>
                     <p style='color:red'><b>" . lang('certificate_manager_certificate_change_warning') . "</b></p>
                 </td>
+        ";
+    } else {
+        $blurb = '';
+    }
+    
+    echo infobox_highlight($title, "
+        <table>
+            <tr>
                 <td width='460' align='center'><img src='" . clearos_app_htdocs('certificate_manager') . "/certwarning.png'  alt=''></td>
             </tr>
         </table>
     ");
 }
+*/
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open($form);
+echo form_open($form, array('id' => 'certificate_form'));
 echo form_header($title);
 
 echo field_view(lang('certificate_manager_certificate_type'), $type_text);
