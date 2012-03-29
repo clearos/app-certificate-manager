@@ -54,6 +54,10 @@ if ($form_type === 'add') {
             anchor_cancel('/app/certificate_manager/certificate')
         );
     }
+} else if ($form_type === 'wizard') {
+    $read_only = FALSE;
+    $form = 'certificate_manager/certificate/add/' . $type;
+    $buttons = array();
 } else {
     $read_only = TRUE;
     $form = 'certificate_manager/certificate';
@@ -110,13 +114,13 @@ echo form_header($title);
 
 echo field_view(lang('certificate_manager_certificate_type'), $type_text);
 
-if ($form_type === 'add')
+if (($form_type === 'add') || ($form_type === 'wizard'))
     echo field_input('hostname', $hostname, lang('certificate_manager_internet_hostname'), $read_only);
 
 echo field_input('organization', $organization, lang('organization_organization'), $read_only);
 echo field_input('unit', $unit, lang('organization_unit'), $read_only);
 
-if ($form_type === 'add')
+if (($form_type === 'add') || ($form_type === 'wizard'))
     echo field_input('city', $city, lang('organization_city'), $read_only);
 
 echo field_input('region', $region, lang('organization_region'), $read_only);

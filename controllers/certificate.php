@@ -300,10 +300,10 @@ class Certificate extends ClearOS_Controller
         //---------------
 
         try {
-            $data['form_type'] = $form_type;
+            $data['form_type'] = ($this->session->userdata('wizard')) ? 'wizard' : $form_type;
             $data['certificate'] = $certificate;
 
-            if ($form_type === 'add') {
+            if (($form_type === 'add') || ($form_type === 'wizard')) {
                 $data['type'] = $type;
                 $data['hostname'] = $this->ssl->get_default_hostname();
                 $data['organization'] = $this->ssl->get_default_organization();
