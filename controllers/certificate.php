@@ -275,21 +275,20 @@ class Certificate extends ClearOS_Controller
                 if ($type === 'ca') {
                     $this->ssl->initialize(
                         $this->input->post('hostname'),
-                        $this->input->post('hostname'), // FIXME -- domain name
+                        $this->input->post('hostname'), // TODO -- domain name
                         $this->input->post('organization'),
                         $this->input->post('unit'),
                         $this->input->post('city'),
                         $this->input->post('region'),
                         $this->input->post('country')
                     );
-                }
 
-                $this->page->set_status_updated();
-
-                if ($this->session->userdata['wizard_redirect'])
-                    redirect('/certificate_manager/certificate/warning');
-                else
+                    $this->page->set_status_added();
+                    redirect('/certificate_manager/browser/warning');
+                } else {
+                    $this->page->set_status_updated();
                     redirect('/certificate_manager/certificate');
+                }
             } catch (Exception $e) {
                 $this->page->view_exception($e);
                 return;
@@ -300,10 +299,11 @@ class Certificate extends ClearOS_Controller
         //---------------
 
         try {
-            $data['form_type'] = ($this->session->userdata('wizard')) ? 'wizard' : $form_type;
+            $data['form_type'] = $form_type;
             $data['certificate'] = $certificate;
+            $data['wizard_mode'] = ($this->session->userdata('wizard')) ? TRUE : FALSE;
 
-            if (($form_type === 'add') || ($form_type === 'wizard')) {
+            if ($form_type === 'add') {
                 $data['type'] = $type;
                 $data['hostname'] = $this->ssl->get_default_hostname();
                 $data['organization'] = $this->ssl->get_default_organization();
@@ -339,30 +339,5 @@ class Certificate extends ClearOS_Controller
         //-----------
 
         $this->page->view_form('certificate_manager/item', $data, lang('certificate_manager_certificate'));
-    }
-
-    /**
-     * Warning view.
-     *
-     * @return view
-     */
-
-    function warning()
-    {
-        $this->page->view_form('certificate_manager/warning', array(), lang('base_warning'));
-    }
-
-    /**
-     * Redirects for wizard navigation.
-     *
-     * A helper for javascript for sending the "next" button to the 
-     * next page in the wizard.
-     *
-     * @return redirect
-     */
-
-    function wizard_redirect()
-    {
-        redirect($this->session->userdata('wizard_redirect'));
     }
 }

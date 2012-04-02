@@ -30,6 +30,13 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
+// D E P E N D E N C I E S
+///////////////////////////////////////////////////////////////////////////////
+
+use \Exception as Exception;
+use \clearos\apps\certificate_manager\Certificate_Not_Found_Exception as Certificate_Not_Found_Exception;
+
+///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -59,6 +66,52 @@ class Browser extends ClearOS_Controller
     }
 
     /**
+     * Quick check to see if server is responding.
+     *
+     * @return string offset time
+     */
+
+    function check()
+    {
+        // Load dependencies
+        //------------------
+
+        $this->load->library('certificate_manager/SSL');
+
+        // Gather info on certificate change
+        //----------------------------------
+
+        try {
+            $attributes = $this->ssl->get_certificate_attributes('sys-0-cert.pem');
+
+            $cert_time = strtotime($attributes['issued']);
+            $diff_time = time() - $cert_time;
+
+            // If the timestamp on sys-0-cert.pem is < 10 seconds wait, restart is in progress.
+            // The ajax call will fail once webconfig is stopped and will only start to work
+            // when everything is back up and running.
+            
+            if ($diff_time < 10)
+                $data['wait'] = TRUE;
+            else
+                $data['wait'] = FALSE;
+
+            $data['error_code'] = 0;
+        } catch (Certificate_Not_Found_Exception $e) {
+            $data['wait'] = TRUE;
+            $data['error_code'] = 0;
+        } catch (Exception $e) {
+            // Send a green light if something goes wrong
+            $data['wait'] = FALSE;
+            $data['error_code'] = clearos_exception_code($e);
+            $data['error_message'] = clearos_exception_message($e);
+        }
+
+        $this->output->set_header("Content-Type: application/json");
+        $this->output->set_output(json_encode($data));
+    }
+
+    /**
      * Warning view.
      *
      * @return view
@@ -66,9 +119,18 @@ class Browser extends ClearOS_Controller
 
     function warning()
     {
-        $data['browser'] = 'Google Chrome';
-        $data['image'] = 'warning_chrome.png';
+        // TODO: use user agent detection to provide appropriate screenshot
+        $data['image'] = 'warning_firefox.png';
 
-        $this->page->view_form('certificate_manager/warning', $data, lang('base_warning'));
+        if ($this->session->userdata('wizard')) {
+            $form_type = 'wizard';
+            $options = array();
+        } else {
+            $form_type = 'normal';
+            $options['type'] = My_Page::TYPE_SPLASH;
+        }
+
+
+        $this->page->view_form('certificate_manager/warning', $data, lang('base_warning'), $options);
     }
 }

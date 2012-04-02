@@ -37,18 +37,28 @@ $this->lang->load('base');
 $this->lang->load('certificate_manager');
 
 ///////////////////////////////////////////////////////////////////////////////
+// Form handler
+///////////////////////////////////////////////////////////////////////////////
+
+if ($form_type === 'wizard')
+    $continue = "";
+else
+    $continue = "<p align='center'>" . anchor_custom('/app/certificate_manager', lang('base_continue')) . "</p>";
+
+///////////////////////////////////////////////////////////////////////////////
 // Infobox
 ///////////////////////////////////////////////////////////////////////////////
 
-/*
-echo infobox_highlight($browser, "
-    <table>
-        <tr>
-            <td idth='460' align='center'><img src='" . clearos_app_htdocs('certificate_manager') . "/$image'  alt='$browser'></td>
-        </tr>
-    </table>
-");
-*/
+echo "<div id='webconfig_restarting' style='display:none;'>";
+echo infobox_warning(
+    lang('base_warning'),
+    "<div class='theme-loading-normal'>" . lang('certificate_manager_web_interface_is_restarting') . "</div>"
+);
+echo "</div>";
 
-echo infobox_warning("Warning",
-    "The web interface is restarting with the new security certificates.  ClearOS testers - we will make this warning more user friendly in the final release.");
+echo infobox_highlight(
+    lang('certificate_manager_web_browser_warning'), 
+    lang('certificate_manager_web_browser_warning_description') .
+    $continue .
+    "<p><img src='" . clearos_app_htdocs('certificate_manager') . "/$image' alt=''></p>"
+);

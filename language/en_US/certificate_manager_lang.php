@@ -1,7 +1,7 @@
 <?php
 
 $lang['certificate_manager_app_name'] = 'Certificate Manager';
-$lang['certificate_manager_app_description'] = 'Security certificates are an industry standard for encrypting information sent over a network, providing authentication and enabling digital signatures.  The Certificate Manager app provides the ability create, manage and deploy Security certificates to users and apps.';
+$lang['certificate_manager_app_description'] = 'Security certificates are an industry standard for encrypting information sent over a network, providing authentication and enabling digital signatures.  The Certificate Manager app provides the ability create, manage and deploy security certificates to users and apps.';
 $lang['certificate_manager_certificate_manager'] = 'Certificate Manager';
 $lang['certificate_manager_certificate_authority'] = 'Certificate Authority';
 $lang['certificate_manager_certificate'] = 'Certificate';
@@ -29,4 +29,7 @@ $lang['certificate_manager_security_is_important'] = 'Security is Important';
 $lang['certificate_manager_warning'] = 'Warning';
 $lang['certificate_manager_system_waiting_for_connection_to_master'] = 'The system is waiting for a connection to the master node.';
 $lang['certificate_manager_web_browser_warning'] = 'Web Browser Warning';
-$lang['certificate_manager_web_browser_warning_description'] = 'In a few seconds, this web interface will restart using the security certificates that you just created.  You will see a warning in your web browser similar to the screenshot below.   All is well, and you can proceed safely.';
+$lang['certificate_manager_web_browser_warning_description'] = 'This web interface automatically restarts after your new security certificates are created.  You will see a warning in your web browser similar to the screenshot below.   All is well, and you can proceed safely.';
+$lang['certificate_manager_web_interface_is_restarting'] = 'The web interface is restarting with the new security certificates.';
+$lang['certificate_manager_ready_to_continue'] = 'Ready to Continue';
+$lang['certificate_manager_web_interface_has_restarted'] = 'The web interface has restarted.';

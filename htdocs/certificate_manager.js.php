@@ -51,6 +51,11 @@ header('Content-Type:application/x-javascript');
 
 $(document).ready(function() {
 
+    // Prep
+    //-----
+
+    $("#webconfig_restarting").hide();
+
     // Wizard next button handling
     //----------------------------
 
@@ -58,8 +63,48 @@ $(document).ready(function() {
         if ($(location).attr('href').match('.*\/add\/ca$') != null)
             $('form#certificate_form').submit();
         else if ($(location).attr('href').match('.*\/certificate') != null)
-            window.location = '/app/certificate_manager/certificate/wizard_redirect';
+            window.location = '/app/base/wizard/next_step';
     });
+
+    // Hook to check status when webconfig restarts after certificate change
+    //----------------------------------------------------------------------
+
+    if ($(location).attr('href').match('browser\/warning$') != null)
+        checkWebconfig();
 });
+
+
+function checkWebconfig() {
+    $.ajax({
+        url: '/app/certificate_manager/browser/check',
+        method: 'GET',
+        dataType: 'json',
+        success : function(payload) {
+            showWebconfigStatus(payload.wait);
+            window.setTimeout(checkWebconfig, 1000);
+        },
+        error: function (XMLHttpRequest, textStatus, errorThrown) {
+            showWebconfigStatus(true);
+            window.setTimeout(checkWebconfig, 1000);
+        }
+    });
+}
+
+function showWebconfigStatus(wait) {
+    if (wait) {
+        $("#webconfig_restarting").show();
+
+        // Wizard buttons
+        $('#theme_wizard_nav_next').hide();
+        $('#theme_wizard_nav_previous').hide();
+
+    } else {
+        $("#webconfig_restarting").hide();
+
+        // Wizard buttons
+        $('#theme_wizard_nav_next').show();
+        $('#theme_wizard_nav_previous').show();
+    }
+}
 
 // vim: ts=4 syntax=javascript

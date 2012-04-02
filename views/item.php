@@ -54,10 +54,6 @@ if ($form_type === 'add') {
             anchor_cancel('/app/certificate_manager/certificate')
         );
     }
-} else if ($form_type === 'wizard') {
-    $read_only = FALSE;
-    $form = 'certificate_manager/certificate/add/' . $type;
-    $buttons = array();
 } else {
     $read_only = TRUE;
     $form = 'certificate_manager/certificate';
@@ -67,6 +63,7 @@ if ($form_type === 'add') {
         anchor_custom('/app/certificate_manager/certificate/delete/' . $certificate, lang('base_delete')),
         anchor_cancel('/app/certificate_manager/certificate')
     );
+
 }
 
 if ($type === 'ca') {
@@ -78,34 +75,6 @@ if ($type === 'ca') {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Infobox help
-///////////////////////////////////////////////////////////////////////////////
-
-/*
-if (($type === 'ca') && ($form_type === 'add')) {
-    // In wizard mode, the text is shown in the side bar.
-    if (isset($this->session->userdata['wizard'])) {
-        $blurb = "
-                <td valign='top'>
-                    <p>" . lang('certificate_manager_certificate_authority_help') . "</p>
-                    <p style='color:red'><b>" . lang('certificate_manager_certificate_change_warning') . "</b></p>
-                </td>
-        ";
-    } else {
-        $blurb = '';
-    }
-    
-    echo infobox_highlight($title, "
-        <table>
-            <tr>
-                <td width='460' align='center'><img src='" . clearos_app_htdocs('certificate_manager') . "/certwarning.png'  alt=''></td>
-            </tr>
-        </table>
-    ");
-}
-*/
-
-///////////////////////////////////////////////////////////////////////////////
 // Form
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -114,13 +83,13 @@ echo form_header($title);
 
 echo field_view(lang('certificate_manager_certificate_type'), $type_text);
 
-if (($form_type === 'add') || ($form_type === 'wizard'))
+if ($form_type === 'add')
     echo field_input('hostname', $hostname, lang('certificate_manager_internet_hostname'), $read_only);
 
 echo field_input('organization', $organization, lang('organization_organization'), $read_only);
 echo field_input('unit', $unit, lang('organization_unit'), $read_only);
 
-if (($form_type === 'add') || ($form_type === 'wizard'))
+if ($form_type === 'add')
     echo field_input('city', $city, lang('organization_city'), $read_only);
 
 echo field_input('region', $region, lang('organization_region'), $read_only);
