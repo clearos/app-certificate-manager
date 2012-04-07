@@ -38,8 +38,3 @@ if ( [ ! -s "$KEY" ] || [ ! -s $CRT ] ); then
     chmod 640 $KEY $CRT
     rm -f /var/tmp/openssl.cnf.$$
 fi
-
-# Reload clearsyncd
-#------------------
-
-/sbin/service clearsyncd condrestart >/dev/null 2>&1
