@@ -262,13 +262,9 @@ class SSL extends Engine
         $mode_object = Mode_Factory::create();
         $mode = $mode_object->get_mode();
 
-/*
         if ($mode === Mode_Engine::MODE_MASTER)
             $this->_write_clearsync_master_configlet();
         else if ($mode === Mode_Engine::MODE_SLAVE)
-            $this->_write_clearsync_slave_configlet();
-*/
-pete
             $this->_write_clearsync_slave_configlet();
     }
 
