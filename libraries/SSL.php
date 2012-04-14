@@ -249,6 +249,30 @@ class SSL extends Engine
     }
 
     /**
+     * Configures master/slave configuration.
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    public function configure_master_slave()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $mode_object = Mode_Factory::create();
+        $mode = $mode_object->get_mode();
+
+/*
+        if ($mode === Mode_Engine::MODE_MASTER)
+            $this->_write_clearsync_master_configlet();
+        else if ($mode === Mode_Engine::MODE_SLAVE)
+            $this->_write_clearsync_slave_configlet();
+*/
+pete
+            $this->_write_clearsync_slave_configlet();
+    }
+
+    /**
      * Creates a new SSL certificate request.
      *
      * @param string $common_name common for for the certificate
@@ -1363,13 +1387,9 @@ class SSL extends Engine
                 $ssl->set_term(SSL::TERM_10YEAR); 
 
                 $ssl->create_certificate_authority();
-
-                // Create filesync entity if in master mode
-                if ($mode === Mode_Engine::MODE_MASTER)
-                    $this->_write_clearsync_master_configlet($mode);
-            } else if ($mode === Mode_Engine::MODE_SLAVE) {
-                $this->_write_clearsync_slave_configlet($mode);
             }
+
+            $this->configure_master_slave();
         }
 
         $syscert_exists = $this->exists_system_certificate();
@@ -1389,7 +1409,10 @@ class SSL extends Engine
             // Create certificate
             $filename = $ssl->create_certificate_request($hostname, SSL::PURPOSE_SERVER_LOCAL);
             $ssl->sign_certificate_request($filename);
+
+            $this->configure_master_slave();
         }
+
     }
 
     /**
@@ -2574,7 +2597,8 @@ class SSL extends Engine
 <authkey>$key</authkey>
 
 <master bind=\"0.0.0.0\" port=\"8154\">
-  <file name=\"certficate-authority\">/etc/pki/CA/ca-cert.pem</file>
+  <file name=\"certificate-authority\">/etc/pki/CA/ca-cert.pem</file>
+  <file name=\"default-certificate\">/etc/pki/CA/sys-0-cert.pem</file>
 </master>
 
 </plugin>
@@ -2623,7 +2647,8 @@ class SSL extends Engine
 <authkey>$file_sync_key</authkey>
 
 <slave host=\"$master_hostname\" port=\"8154\" interval=\"60\">
-  <file name=\"certficate-authority\" presync=\"\" postsync=\"\">/etc/pki/CA/ca-cert.pem</file>
+  <file name=\"certificate-authority\" presync=\"\" postsync=\"\">/etc/pki/CA/ca-cert.pem</file>
+  <file name=\"default-certificate\" presync=\"\" postsync=\"\">/etc/pki/CAS/sys-0-cert.pem</file>
 </slave>
 
 </plugin>

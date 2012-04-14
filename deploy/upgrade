@@ -38,3 +38,10 @@ if ( [ ! -s "$KEY" ] || [ ! -s $CRT ] ); then
     chmod 640 $KEY $CRT
     rm -f /var/tmp/openssl.cnf.$$
 fi
+
+# Update master slave config
+#---------------------------
+
+/usr/clearos/apps/certificate_manager/deploy/master-slave
+
+exit 0

@@ -11,7 +11,8 @@ if [ "$1" == "default_certificate_event" ]; then
         cp /usr/clearos/sandbox/etc/httpd/conf/server.key /var/clearos/certificate_manager/backup/server.key.$TIMESTAMP
         cp /etc/pki/CA/private/sys-0-key.pem /usr/clearos/sandbox/etc/httpd/conf/server.key
 
-        /sbin/service webconfig condrestart
+        # TODO: this is a workaround to get around weird restart behavior
+        killall -62 syswatch
     fi
 fi
 
