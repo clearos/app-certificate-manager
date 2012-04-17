@@ -69,6 +69,7 @@ use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
 use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\base\Shell as Shell;
+use \clearos\apps\certificate_manager\Certificate_Defaults as Certificate_Defaults;
 use \clearos\apps\certificate_manager\SSL as SSL;
 use \clearos\apps\clearsync\ClearSyncd as ClearSyncd;
 use \clearos\apps\mode\Mode_Engine as Mode_Engine;
@@ -76,12 +77,12 @@ use \clearos\apps\mode\Mode_Factory as Mode_Factory;
 use \clearos\apps\network\Domain as Domain;
 use \clearos\apps\network\Hostname as Hostname;
 use \clearos\apps\network\Network_Utils as Network_Utils;
-use \clearos\apps\organization\Organization as Organization;
 
 clearos_load_library('base/Engine');
 clearos_load_library('base/File');
 clearos_load_library('base/Folder');
 clearos_load_library('base/Shell');
+clearos_load_library('certificate_manager/Certificate_Defaults');
 clearos_load_library('certificate_manager/SSL');
 clearos_load_library('clearsync/ClearSyncd');
 clearos_load_library('mode/Mode_Engine');
@@ -89,7 +90,6 @@ clearos_load_library('mode/Mode_Factory');
 clearos_load_library('network/Domain');
 clearos_load_library('network/Hostname');
 clearos_load_library('network/Network_Utils');
-clearos_load_library('organization/Organization');
 
 // Exceptions
 //-----------
@@ -419,15 +419,15 @@ class SSL extends Engine
 
         // TODO validate
 
-        $organization = new Organization();
+        $defaults = new Certificate_Defaults();
         $domain_object = new Domain();
 
         $domain = $domain_object->get_default();
-        $org_name = $organization->get_organization();
-        $org_unit = $organization->get_unit();
-        $city = $organization->get_city();
-        $region = $organization->get_region();
-        $country = $organization->get_country();
+        $org_name = $defaults->get_organization();
+        $org_unit = $defaults->get_unit();
+        $city = $defaults->get_city();
+        $region = $defaults->get_region();
+        $country = $defaults->get_country();
 
         $domain = empty($domain) ? 'example.com' : $domain;
         $org_name = empty($org_name) ? 'Organization' : $org_name;
@@ -1143,9 +1143,9 @@ class SSL extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $organization = new Organization();
+        $defaults = new Certificate_Defaults();
 
-        return $organization->get_city();
+        return $defaults->get_city();
     }
 
     /**
@@ -1159,9 +1159,9 @@ class SSL extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $organization = new Organization();
+        $defaults = new Certificate_Defaults();
 
-        return $organization->get_country();
+        return $defaults->get_country();
     }
 
     /**
@@ -1191,9 +1191,9 @@ class SSL extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $organization = new Organization();
+        $defaults = new Certificate_Defaults();
 
-        return $organization->get_organization();
+        return $defaults->get_organization();
     }
 
     /**
@@ -1207,9 +1207,9 @@ class SSL extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $organization = new Organization();
+        $defaults = new Certificate_Defaults();
 
-        return $organization->get_region();
+        return $defaults->get_region();
     }
 
     /**
@@ -1223,9 +1223,9 @@ class SSL extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $organization = new Organization();
+        $defaults = new Certificate_Defaults();
 
-        return $organization->get_unit();
+        return $defaults->get_unit();
     }
 
     /**
@@ -1331,36 +1331,36 @@ class SSL extends Engine
     /**
      * Initializes the default certificate authority and system certificate.
      *
-     * @param string $hostname hostname
-     * @param string $domain   domain
-     * @param string $orgname  organization name
-     * @param string $unit     organization unit
-     * @param string $city     city
-     * @param string $region   region
-     * @param string $country  country
+     * @param string $hostname    hostname
+     * @param string $domain      domain
+     * @param string $organiation organization name
+     * @param string $unit        organization unit
+     * @param string $city        city
+     * @param string $region      region
+     * @param string $country     country
      *
      * @return void
      * @throws Certificate_Not_Found_Exception, Engine_Exception
      */
 
-    public function initialize($hostname = NULL, $domain = NULL, $orgname =  NULL, $unit = NULL, $city = NULL, $region = NULL, $country = NULL)
+    public function initialize($hostname, $domain, $organization, $unit, $city, $region, $country)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $organization = new Organization();
-        $domain_object = new Domain();
+        Validation_Exception::is_valid($this->validate_hostname($hostname));
+        Validation_Exception::is_valid($this->validate_organization($organization));
+        Validation_Exception::is_valid($this->validate_unit($unit));
+        Validation_Exception::is_valid($this->validate_city($city));
+        Validation_Exception::is_valid($this->validate_region($region));
+        Validation_Exception::is_valid($this->validate_country($country));
 
-        $domain = empty($domain) ? $domain_object->get_default() : $domain;
-        $orgname = empty($orgname) ? $organization->get_organization() : $orgname;
-        $unit = empty($unit) ? $organization->get_unit() : $unit;
-        $city = empty($city) ? $organization->get_city() : $city;
-        $region = empty($region) ? $organization->get_region() : $region;
-        $country = empty($country) ? $organization->get_country() : $country;
+        $defaults = new Certificate_Defaults();
 
-        if (empty($hostname)) {
-            $hostnameobj = new Hostname();
-            $hostname = $hostnameobj->get();
-        }
+        $defaults->set_organization($organization);
+        $defaults->set_unit($unit);
+        $defaults->set_city($city);
+        $defaults->set_region($region);
+        $defaults->set_country($country);
 
         $ca_exists = $this->exists_certificate_authority();
 
@@ -1374,7 +1374,7 @@ class SSL extends Engine
                 $ssl = new SSL();
                 $ssl->set_rsa_key_size(self::DEFAULT_KEY_SIZE);
                 $ssl->set_common_name('ca.' . $domain);
-                $ssl->set_organization_name($orgname);
+                $ssl->set_organization_name($organization);
                 $ssl->set_organizational_unit($unit);
                 $ssl->set_email_address('security@' . $domain);
                 $ssl->set_locality($city);
@@ -1393,7 +1393,7 @@ class SSL extends Engine
         if (!$syscert_exists) {
             $ssl = new SSL();
             $ssl->set_rsa_key_size(self::DEFAULT_KEY_SIZE);
-            $ssl->set_organization_name($orgname);
+            $ssl->set_organization_name($organization);
             $ssl->set_organizational_unit($unit);
             $ssl->set_email_address('security@' . $domain);
             $ssl->set_locality($city);
@@ -2146,9 +2146,9 @@ class SSL extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $organization = new Organization();
+        $defaults = new Certificate_Defaults();
 
-        return $organization->validate_city($city);
+        return $defaults->validate_city($city);
     }
 
     /**
@@ -2163,9 +2163,9 @@ class SSL extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $organization = new Organization();
+        $defaults = new Certificate_Defaults();
 
-        return $organization->validate_country($country);
+        return $defaults->validate_country($country);
     }
 
     /**
@@ -2196,9 +2196,9 @@ class SSL extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $organization = new Organization();
+        $defaults = new Certificate_Defaults();
 
-        return $organization->validate_organization($organization);
+        return $defaults->validate_organization($organization);
     }
 
     /**
@@ -2213,9 +2213,9 @@ class SSL extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $organization = new Organization();
+        $defaults = new Certificate_Defaults();
 
-        return $organization->validate_region($region);
+        return $defaults->validate_region($region);
     }
 
     /**
@@ -2230,9 +2230,9 @@ class SSL extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $organization = new Organization();
+        $defaults = new Certificate_Defaults();
 
-        return $organization->validate_unit($unit);
+        return $defaults->validate_unit($unit);
     }
 
     /**

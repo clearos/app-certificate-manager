@@ -58,6 +58,9 @@ $app['controllers']['browser']['inline_help'] = array(
 $app['core_requires'] = array(
     'app-network-core', 
     'app-clearsync-core',
+    'app-organization-core',
+    'app-mode-core',
+    'app-clearsync-core',
     'csplugin-filesync',
     'openssl >= 1.0.0'
 );
@@ -82,6 +85,7 @@ $app['core_file_manifest'] = array(
 );
 
 $app['core_directory_manifest'] = array(
+    '/etc/clearos/certificate_manager.d' => array(),
     '/var/clearos/certificate_manager' => array(),
     '/var/clearos/certificate_manager/backup' => array(),
 );
