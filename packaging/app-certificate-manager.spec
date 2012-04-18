@@ -21,6 +21,9 @@ Group: ClearOS/Libraries
 Requires: app-base-core
 Requires: app-network-core
 Requires: app-clearsync-core
+Requires: app-organization-core
+Requires: app-mode-core
+Requires: app-clearsync-core
 Requires: csplugin-filesync
 Requires: openssl >= 1.0.0
 
@@ -37,6 +40,7 @@ This package provides the core API and libraries.
 mkdir -p -m 755 %{buildroot}/usr/clearos/apps/certificate_manager
 cp -r * %{buildroot}/usr/clearos/apps/certificate_manager/
 
+install -d -m 0755 %{buildroot}/etc/clearos/certificate_manager.d
 install -d -m 0755 %{buildroot}/var/clearos/certificate_manager
 install -d -m 0755 %{buildroot}/var/clearos/certificate_manager/backup
 install -D -m 0644 packaging/filewatch-certificate-manager-default.conf %{buildroot}/etc/clearsync.d/filewatch-certificate-manager-default.conf
@@ -82,6 +86,7 @@ exit 0
 %exclude /usr/clearos/apps/certificate_manager/packaging
 %exclude /usr/clearos/apps/certificate_manager/tests
 %dir /usr/clearos/apps/certificate_manager
+%dir /etc/clearos/certificate_manager.d
 %dir /var/clearos/certificate_manager
 %dir /var/clearos/certificate_manager/backup
 /usr/clearos/apps/certificate_manager/deploy
