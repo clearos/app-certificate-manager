@@ -55,6 +55,16 @@ class Certificate_Manager extends ClearOS_Controller
 
     function index()
     {
+        // Show mode status widget if we're not initialized
+        //-------------------------------------------------
+
+        $this->load->module('accounts/system_mode');
+
+        if (! $this->system_mode->initialized()) {
+            $this->system_mode->widget();
+            return;
+        }
+
         // Load libraries
         //---------------
 
