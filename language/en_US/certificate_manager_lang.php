@@ -33,6 +33,6 @@ $lang['certificate_manager_web_browser_warning_description'] = 'This web interfa
 $lang['certificate_manager_web_interface_is_restarting'] = 'The web interface is restarting with the new security certificates.';
 $lang['certificate_manager_ready_to_continue'] = 'Ready to Continue';
 $lang['certificate_manager_web_interface_has_restarted'] = 'The web interface has restarted.';
-$lang['certificatE_manager_configure_app_help'] = 'Before you can start using this app, you first need to configure Security Certificates.';
+$lang['certificate_manager_configure_app_help'] = 'Before you can start using this app, you first need to configure Security Certificates.';
 
 $lang['certificate_manager_configure_security_certificates'] = 'Configure Security Certificates';

@@ -42,6 +42,6 @@ $this->lang->load('certificate_manager');
 
 echo infobox_highlight(
     lang('certificate_manager_certificate_manager'),
-    '<p>' . lang('certificatE_manager_configure_app_help'). '</p>' .
+    '<p>' . lang('certificate_manager_configure_app_help'). '</p>' .
     "<p align='center'>" . anchor_custom('/app/certificate_manager', lang('certificate_manager_configure_security_certificates')) . "</p>"
 );
