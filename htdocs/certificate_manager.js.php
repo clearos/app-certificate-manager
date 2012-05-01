@@ -92,12 +92,13 @@ function checkWebconfig() {
 
 function showWebconfigStatus(wait) {
     if (wait) {
-        $("#webconfig_restarting").show();
+        if ( typeof showWebconfigStatus.counter == 'undefined' ) {
+            $("#webconfig_restarting").show();
 
-        // Wizard buttons
-        $('#theme_wizard_nav_next').hide();
-        $('#theme_wizard_nav_previous').hide();
-
+            // Wizard buttons
+            $('#theme_wizard_nav_next').hide();
+            $('#theme_wizard_nav_previous').hide();
+        }
     } else {
         $("#webconfig_restarting").hide();
 
