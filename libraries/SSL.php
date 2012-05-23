@@ -2644,7 +2644,7 @@ class SSL extends Engine
 
 <slave host=\"$master_hostname\" port=\"8154\" interval=\"60\">
   <file name=\"certificate-authority\" presync=\"\" postsync=\"\">/etc/pki/CA/ca-cert.pem</file>
-  <file name=\"default-certificate\" presync=\"\" postsync=\"\">/etc/pki/CAS/sys-0-cert.pem</file>
+  <file name=\"default-certificate\" presync=\"\" postsync=\"\">/etc/pki/CA/sys-0-cert.pem</file>
 </slave>
 
 </plugin>
