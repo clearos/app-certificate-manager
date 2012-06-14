@@ -2504,10 +2504,10 @@ class SSL extends Engine
         $file = new File($filename, TRUE);
 
         if (!$file->exists()) {
-            $file->create('root', 'root', '0600');
+            $file->create('root', 'root', '0644');
         } else {
             $file->chown('root', 'root');
-            $file->chmod('0600');
+            $file->chmod('0644');
         }
 
         $file->dump_contents_from_array($expanded);
