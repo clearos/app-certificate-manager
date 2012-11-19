@@ -1,7 +1,7 @@
 
 Name: app-certificate-manager
 Epoch: 1
-Version: 1.2.2
+Version: 1.2.3
 Release: 1%{dist}
 Summary: Certificate Manager
 License: GPLv3
@@ -13,7 +13,7 @@ Requires: app-base
 Requires: app-accounts
 
 %description
-Security certificates are an industry standard for encrypting information sent over a network, providing authentication and enabling digital signatures.  The Certificate Manager app provides the ability create, manage and deploy security certificates to users and apps.
+Security certificates are an industry standard for encrypting information sent over a network, providing authentication and enabling digital signatures.  The Certificate Manager app provides the ability to create, manage and deploy security certificates to users and apps.
 
 %package core
 Summary: Certificate Manager - Core
@@ -29,7 +29,7 @@ Requires: csplugin-filesync
 Requires: openssl >= 1.0.0
 
 %description core
-Security certificates are an industry standard for encrypting information sent over a network, providing authentication and enabling digital signatures.  The Certificate Manager app provides the ability create, manage and deploy security certificates to users and apps.
+Security certificates are an industry standard for encrypting information sent over a network, providing authentication and enabling digital signatures.  The Certificate Manager app provides the ability to create, manage and deploy security certificates to users and apps.
 
 This package provides the core API and libraries.
 
