@@ -5,7 +5,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 $app['basename'] = 'certificate_manager';
-$app['version'] = '1.2.3';
+$app['version'] = '1.4.15';
 $app['release'] = '1';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
@@ -60,6 +60,8 @@ $app['requires'] = array(
 );
 
 $app['core_requires'] = array(
+    'app-base-core >= 1:1.4.15',
+    'app-events-core',
     'app-network-core', 
     'app-clearsync-core',
     'app-organization-core',
@@ -70,7 +72,7 @@ $app['core_requires'] = array(
 );
 
 $app['core_file_manifest'] = array( 
-    'filewatch-certificate-manager-default.conf'=> array('target' => '/etc/clearsync.d/filewatch-certificate-manager-default.conf'),
+    'filewatch-certificate-manager-event.conf'=> array('target' => '/etc/clearsync.d/filewatch-certificate-manager-event.conf'),
     'index.txt' => array(
         'target' => '/etc/pki/CA/index.txt',
         'config' => TRUE,
@@ -86,10 +88,15 @@ $app['core_file_manifest'] = array(
         'config' => TRUE,
         'config_params' => 'noreplace',
     ),
+    'certificate_manager_event' => array(
+        'target' => '/var/clearos/events/certificate_manager/certificate_manager',
+        'mode' => '0755',
+    ),
 );
 
 $app['core_directory_manifest'] = array(
     '/etc/clearos/certificate_manager.d' => array(),
     '/var/clearos/certificate_manager' => array(),
     '/var/clearos/certificate_manager/backup' => array(),
+    '/var/clearos/events/certificate_manager' => array(),
 );

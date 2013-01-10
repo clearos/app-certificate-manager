@@ -1,7 +1,7 @@
 
 Name: app-certificate-manager
 Epoch: 1
-Version: 1.2.3
+Version: 1.4.15
 Release: 1%{dist}
 Summary: Certificate Manager
 License: GPLv3
@@ -20,6 +20,8 @@ Summary: Certificate Manager - Core
 License: LGPLv3
 Group: ClearOS/Libraries
 Requires: app-base-core
+Requires: app-base-core >= 1:1.4.15
+Requires: app-events-core
 Requires: app-network-core
 Requires: app-clearsync-core
 Requires: app-organization-core
@@ -44,7 +46,9 @@ cp -r * %{buildroot}/usr/clearos/apps/certificate_manager/
 install -d -m 0755 %{buildroot}/etc/clearos/certificate_manager.d
 install -d -m 0755 %{buildroot}/var/clearos/certificate_manager
 install -d -m 0755 %{buildroot}/var/clearos/certificate_manager/backup
-install -D -m 0644 packaging/filewatch-certificate-manager-default.conf %{buildroot}/etc/clearsync.d/filewatch-certificate-manager-default.conf
+install -d -m 0755 %{buildroot}/var/clearos/events/certificate_manager
+install -D -m 0755 packaging/certificate_manager_event %{buildroot}/var/clearos/events/certificate_manager/certificate_manager
+install -D -m 0644 packaging/filewatch-certificate-manager-event.conf %{buildroot}/etc/clearsync.d/filewatch-certificate-manager-event.conf
 install -D -m 0644 packaging/index.txt %{buildroot}/etc/pki/CA/index.txt
 install -D -m 0644 packaging/openssl.cnf %{buildroot}/etc/pki/CA/openssl.cnf
 install -D -m 0644 packaging/serial %{buildroot}/etc/pki/CA/serial
@@ -90,10 +94,12 @@ exit 0
 %dir /etc/clearos/certificate_manager.d
 %dir /var/clearos/certificate_manager
 %dir /var/clearos/certificate_manager/backup
+%dir /var/clearos/events/certificate_manager
 /usr/clearos/apps/certificate_manager/deploy
 /usr/clearos/apps/certificate_manager/language
 /usr/clearos/apps/certificate_manager/libraries
-/etc/clearsync.d/filewatch-certificate-manager-default.conf
+/var/clearos/events/certificate_manager/certificate_manager
+/etc/clearsync.d/filewatch-certificate-manager-event.conf
 %config(noreplace) /etc/pki/CA/index.txt
 %config(noreplace) /etc/pki/CA/openssl.cnf
 %config(noreplace) /etc/pki/CA/serial
