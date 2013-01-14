@@ -173,6 +173,21 @@ class Certificate extends ClearOS_Controller
 
     function slave_info()
     {
+        // Run initialization
+        //-------------------
+        // TODO: change this to an event at some point -- to discuss
+
+        try {
+            $this->load->library('certificate_manager/SSL');
+            $this->ssl->configure_master_slave();
+        } catch (Engine_Exception $e) {
+            $this->page->view_exception($e);
+            return;
+        }
+
+        // Load view data
+        //---------------
+
         $this->page->view_form('certificate_manager/slave_info', $data, lang('certificate_manager_certificates'));
     }
 
