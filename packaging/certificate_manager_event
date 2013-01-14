@@ -1,12 +1,14 @@
 #!/bin/sh
 
 if [ -e /etc/pki/CA/sys-0-cert.pem ]; then
+    TIMESTAMP=`date "+%b-%d-%Y-%T"`
     RESTART=""
+
     SYSTEM_CERT_MD5=`/usr/bin/md5sum /etc/pki/CA/sys-0-cert.pem 2>/dev/null | /bin/awk '{ print $1 }'` 
     WEBCONFIG_CERT_MD5=`/usr/bin/md5sum /usr/clearos/sandbox/etc/httpd/conf/server.crt | /bin/awk '{ print $1 }'` 
     
     if [ "$SYSTEM_CERT_MD5" != "$WEBCONFIG_CERT_MD5" ]; then
-        logger -p local6.notice -t clearsync "certificate_manager - provisioning new webconfig certificate"
+        logger -p local6.notice -t events "certificate_manager - provisioning new webconfig certificate"
         cp /usr/clearos/sandbox/etc/httpd/conf/server.crt /var/clearos/certificate_manager/backup/server.crt.$TIMESTAMP
         cp /etc/pki/CA/sys-0-cert.pem /usr/clearos/sandbox/etc/httpd/conf/server.crt
         RESTART="yes"
@@ -16,14 +18,14 @@ if [ -e /etc/pki/CA/sys-0-cert.pem ]; then
     WEBCONFIG_KEY_MD5=`/usr/bin/md5sum /usr/clearos/sandbox/etc/httpd/conf/server.key | /bin/awk '{ print $1 }'` 
 
     if [ "$SYSTEM_KEY_MD5" != "$WEBCONFIG_KEY_MD5" ]; then
-        logger -p local6.notice -t clearsync "certificate_manager - provisioning new webconfig key"
+        logger -p local6.notice -t events "certificate_manager - provisioning new webconfig key"
         cp /usr/clearos/sandbox/etc/httpd/conf/server.key /var/clearos/certificate_manager/backup/server.key.$TIMESTAMP
         cp /etc/pki/CA/private/sys-0-key.pem /usr/clearos/sandbox/etc/httpd/conf/server.key
         RESTART="yes"
     fi
 
     if [ -n "$RESTART" ]; then
-        logger -p local6.notice -t clearsync "certificate_manager - triggering webconfig restart"
+        logger -p local6.notice -t events "certificate_manager - triggering webconfig restart"
         /usr/clearos/apps/base/deploy/syncaction webconfig_change_event
     fi
 fi
