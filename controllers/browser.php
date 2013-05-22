@@ -3,9 +3,9 @@
 /**
  * Certificate manager browser controller.
  *
- * @category   Apps
- * @package    Certificate_Manager
- * @subpackage Controllers
+ * @category   apps
+ * @package    certificate-manager
+ * @subpackage controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
@@ -43,9 +43,9 @@ use \clearos\apps\certificate_manager\Certificate_Not_Found_Exception as Certifi
 /**
  * Certificate manager browser controller.
  *
- * @category   Apps
- * @package    Certificate_Manager
- * @subpackage Controllers
+ * @category   apps
+ * @package    certificate-manager
+ * @subpackage controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later

@@ -3,9 +3,9 @@
 /**
  * Certificate manager policy controller
  *
- * @category   Apps
- * @package    Certificate_Manager
- * @subpackage Controllers
+ * @category   apps
+ * @package    certificate-manager
+ * @subpackage controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2012 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
@@ -49,9 +49,9 @@ require clearos_app_base('groups') . '/controllers/groups.php';
 /**
  * Certificate manager policy controller
  *
- * @category   Apps
- * @package    Certificate_Manager
- * @subpackage Controllers
+ * @category   apps
+ * @package    certificate-manager
+ * @subpackage controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2012 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later

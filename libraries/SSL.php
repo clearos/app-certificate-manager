@@ -3,9 +3,9 @@
 /**
  * Certificate manager class.
  *
- * @category   Apps
- * @package    Certificate_Manager
- * @subpackage Exceptions
+ * @category   apps
+ * @package    certificate-manager
+ * @subpackage libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2006-2012 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
@@ -124,9 +124,9 @@ clearos_load_library('certificate_manager/Certificate_Not_Found_Exception');
  * VPN client, etc.  The uses supported in the class are defined in the USE_X
  * constants.
  *
- * @category   Apps
- * @package    Certificate_Manager
- * @subpackage Exceptions
+ * @category   apps
+ * @package    certificate-manager
+ * @subpackage libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2006-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
