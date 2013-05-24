@@ -2661,7 +2661,11 @@ class SSL extends Engine
         $file->create('root', 'clearsync', '0640');
         $file->add_lines($contents);
 
-        $clearsync = new ClearSyncd();
-        $clearsync->reset();
+        try {
+            $clearsync = new ClearSyncd();
+            $clearsync->reset();
+        } catch (Exception $e) {
+            // not fatal
+        }
     }
 }
