@@ -56,6 +56,8 @@ require_once $bootstrap . '/bootstrap.php';
 // T R A N S L A T I O N S
 ///////////////////////////////////////////////////////////////////////////////
 
+clearos_load_language('base');
+clearos_load_language('network');
 clearos_load_language('certificate_manager');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1299,7 +1301,7 @@ class SSL extends Engine
         $options = array(
             self::TERM_1DAY => '1 ' . lang('base_day'),
             self::TERM_7DAYS => '7 ' . lang('base_days'),
-            self::TERM_1MONTH => '1 ' . lang('base_month'),
+            self::TERM_1MONTH => '30 ' . lang('base_days'),
             self::TERM_3MONTHS => '3 ' . lang('base_months'),
             self::TERM_6MONTHS => '6 ' . lang('base_months'),
             self::TERM_1YEAR => '1 ' . lang('base_year'),
@@ -2303,7 +2305,7 @@ class SSL extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if ($password != $verify)
-            return lang('certificate_manager_password_and_verify_do_not_match');
+            return lang('base_password_and_verify_do_not_match');
 
         // Must begin w/a letter/number
         if (!preg_match('/^([a-zA-Z0-9]+[0-9a-zA-Z\.\-\!\@\#\$\%\^\&\*\(\)_]*)$/', $password))
