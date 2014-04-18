@@ -89,7 +89,6 @@ exit 0
 %files core
 %defattr(-,root,root)
 %exclude /usr/clearos/apps/certificate_manager/packaging
-%exclude /usr/clearos/apps/certificate_manager/tests
 %dir /usr/clearos/apps/certificate_manager
 %dir /etc/clearos/certificate_manager.d
 %dir /var/clearos/certificate_manager

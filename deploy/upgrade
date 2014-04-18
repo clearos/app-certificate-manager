@@ -18,10 +18,14 @@ SSLCONF=/etc/pki/CA/openssl.cnf
 
 if ( [ ! -s "$KEY" ] || [ ! -s $CRT ] ); then
     # Determine our hostname
-    if [ -f /etc/sysconfig/network ]; then
-            HOSTNAME=`grep "HOSTNAME=" /etc/sysconfig/network | sed 's/HOSTNAME=//g' | sed 's/"//g'`
-    else
-            HOSTNAME="server.lan"
+    if [ -f /etc/hostname ]; then
+        HOSTNAME=`cat /etc/hostname`
+    elif [ -f /etc/sysconfig/network ]; then
+        HOSTNAME=`grep "HOSTNAME=" /etc/sysconfig/network | sed 's/HOSTNAME=//g' | sed 's/"//g'`
+    fi
+
+    if [ -z "$HOSTNAME" ]; then
+        HOSTNAME="server.lan"
     fi
 
     umask 77
