@@ -1,7 +1,7 @@
 
 Name: app-certificate-manager
 Epoch: 1
-Version: 1.5.0
+Version: 1.6.0
 Release: 1%{dist}
 Summary: Certificate Manager
 License: GPLv3
@@ -21,12 +21,10 @@ License: LGPLv3
 Group: ClearOS/Libraries
 Requires: app-base-core
 Requires: app-base-core >= 1:1.4.15
-Requires: app-events-core
+Requires: app-events-core >= 1:1.6.0
 Requires: app-network-core
-Requires: app-clearsync-core
 Requires: app-organization-core
 Requires: app-mode-core
-Requires: app-clearsync-core
 Requires: csplugin-filesync
 Requires: openssl >= 1.0.0
 

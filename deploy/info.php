@@ -5,7 +5,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 $app['basename'] = 'certificate_manager';
-$app['version'] = '1.5.0';
+$app['version'] = '1.6.0';
 $app['release'] = '1';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
@@ -61,12 +61,10 @@ $app['requires'] = array(
 
 $app['core_requires'] = array(
     'app-base-core >= 1:1.4.15',
-    'app-events-core',
+    'app-events-core >= 1:1.6.0',
     'app-network-core', 
-    'app-clearsync-core',
     'app-organization-core',
     'app-mode-core',
-    'app-clearsync-core',
     'csplugin-filesync',
     'openssl >= 1.0.0'
 );
