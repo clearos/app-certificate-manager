@@ -33,7 +33,10 @@ if ( [ ! -s "$KEY" ] || [ ! -s $CRT ] ); then
     sed -e "s/^CN .*/CN = $HOSTNAME/" $SSLCONF > /var/tmp/openssl.cnf.$$
 
     # Generate keys
+    logger -p local6.notice -t installer "app-certificate-manager-core - creating bootstrap key"
     /usr/bin/openssl genrsa -out $KEY 1024 2>/dev/null
+
+    logger -p local6.notice -t installer "app-certificate-manager-core - creating bootstrap certificate"
     /usr/bin/openssl req -new -key $KEY -x509 -out $CRT -config /var/tmp/openssl.cnf.$$ \
             -days 3000 -set_serial `date "+%s"` 2>/dev/null
 
