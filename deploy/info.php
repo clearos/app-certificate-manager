@@ -5,7 +5,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 $app['basename'] = 'certificate_manager';
-$app['version'] = '2.0.5';
+$app['version'] = '2.0.14';
 $app['release'] = '1';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
@@ -19,7 +19,7 @@ $app['description'] = lang('certificate_manager_app_description');
 
 $app['name'] = lang('certificate_manager_app_name');
 $app['category'] = lang('base_category_system');
-$app['subcategory'] = lang('base_subcategory_security');
+$app['subcategory'] = lang('base_subcategory_settings');
 
 /////////////////////////////////////////////////////////////////////////////
 // Controllers
