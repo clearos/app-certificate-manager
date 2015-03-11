@@ -43,7 +43,7 @@ $this->lang->load('certificate_manager');
 if ($form_type === 'wizard')
     $continue = "";
 else
-    $continue = "<p align='center'>" . anchor_custom('/app/certificate_manager', lang('base_continue')) . "</p>";
+    $continue = "<p align='center'>" . anchor_custom('/app/certificate_manager', lang('base_continue')) . "</p>\n";
 
 ///////////////////////////////////////////////////////////////////////////////
 // Infobox
@@ -52,13 +52,17 @@ else
 echo "<div id='webconfig_restarting' style='display:none;'>";
 echo infobox_warning(
     lang('base_warning'),
-    "<div class='theme-loading-normal'>" . lang('certificate_manager_web_interface_is_restarting') . "</div>"
+    loading('normal', lang('certificate_manager_web_interface_is_restarting'))
 );
 echo "</div>";
 
 echo infobox_highlight(
-    lang('certificate_manager_web_browser_warning'), 
-    lang('certificate_manager_web_browser_warning_description') .
-    $continue .
-    "<p><img src='" . clearos_app_htdocs('certificate_manager') . "/$image' alt=''></p>"
+    lang('certificate_manager_security_certificates'),
+    lang('certificate_manager_web_browser_warning_description') . "\n" .
+    $continue . "\n"
 );
+
+// TODO - remove custom class.
+echo box_open(lang('certificate_manager_web_browser_warning'));
+echo box_content(image($image, array('class' => 'center-block')));
+echo box_close();
