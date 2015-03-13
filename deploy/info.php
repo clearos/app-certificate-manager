@@ -5,7 +5,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 $app['basename'] = 'certificate_manager';
-$app['version'] = '2.0.18';
+$app['version'] = '2.0.20';
 $app['release'] = '1';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
@@ -98,3 +98,6 @@ $app['core_directory_manifest'] = array(
     '/var/clearos/certificate_manager/backup' => array(),
     '/var/clearos/events/certificate_manager' => array(),
 );
+
+$app['delete_dependency'] = array();
+
