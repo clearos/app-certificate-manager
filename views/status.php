@@ -40,8 +40,12 @@ $this->lang->load('certificate_manager');
 // Accounts Status
 ///////////////////////////////////////////////////////////////////////////////
 
+$options['buttons'] = array(
+    anchor_custom('/app/certificate_manager', lang('certificate_manager_configure_security_certificates'))
+);
+
 echo infobox_highlight(
     lang('certificate_manager_certificate_manager'),
-    '<p>' . lang('certificate_manager_configure_app_help'). '</p>' .
-    "<p align='center'>" . anchor_custom('/app/certificate_manager', lang('certificate_manager_configure_security_certificates')) . "</p>"
+    lang('certificate_manager_configure_app_help'),
+    $options
 );

@@ -40,10 +40,10 @@ $this->lang->load('certificate_manager');
 // Form handler
 ///////////////////////////////////////////////////////////////////////////////
 
-if ($form_type === 'wizard')
-    $continue = "";
-else
-    $continue = "<p align='center'>" . anchor_custom('/app/certificate_manager', lang('base_continue')) . "</p>\n";
+$options = array();
+
+if ($form_type !== 'wizard')
+    $options['buttons'] = array(anchor_custom('/app/certificate_manager', lang('base_continue')));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Infobox
@@ -58,8 +58,8 @@ echo "</div>";
 
 echo infobox_highlight(
     lang('certificate_manager_security_certificates'),
-    lang('certificate_manager_web_browser_warning_description') . "\n" .
-    $continue . "\n"
+    lang('certificate_manager_web_browser_warning_description'),
+    $options
 );
 
 // TODO - remove custom class.
