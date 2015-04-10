@@ -34,7 +34,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 use \clearos\apps\certificate_manager\SSL as SSL;
-use clearos\apps\certificate_manager\CertManager;
+use clearos\apps\certificate_manager\Cert_Manager;
 
 $this->lang->load('certificate_manager');
 
@@ -81,30 +81,28 @@ echo summary_table(
 );
 $items = array();
 
-foreach (CertManager::getCerts() as $cert => $files) {
-	$buttons = array();
-	$buttons[] = anchor_custom('/app/certificate_manager/detilCert/'.$cert, lang('certificate_manager_detail'));
-	if(strcmp($cert, '_default_') != 0) {
-		$buttons[] = anchor_custom('/app/certificate_manager/removeCert/'.$cert, lang('base_delete'));
-	}
-	$name = $cert == CertManager::CERT_DEF ? lang('certificate_manager_default') : $cert;
-	$item['title'] = $name;
-	$item['action'] = NULL;
-	$item['anchors'] = button_set($buttons);
-	$parts = array();
-	foreach($files as $file => $s) {
-		$parts[] = $file;
-	}
-	sort($parts);
-	$item['details'] = array($name, implode(", ", $parts));
-	$items[] = $item;
+foreach (Cert_Manager::get_certs() as $cert => $files) {
+    $buttons = array();
+    $buttons[] = anchor_custom('/app/certificate_manager/detail_cert/'.$cert, lang('certificate_manager_detail'));
+    if(strcmp($cert, '_default_') != 0) {
+        $buttons[] = anchor_custom('/app/certificate_manager/remove_cert/'.$cert, lang('base_delete'));
+    }
+    $name = $cert == Cert_Manager::CERT_DEF ? lang('certificate_manager_default') : $cert;
+    $item['title'] = $name;
+    $item['action'] = NULL;
+    $item['anchors'] = button_set($buttons);
+    $parts = array();
+    foreach($files as $file => $s) {
+        $parts[] = $file;
+    }
+    sort($parts);
+    $item['details'] = array($name, implode(", ", $parts));
+    $items[] = $item;
 }
 
 echo summary_table(
-		lang('certificate_manager_ssl'),
-		array(anchor_custom('/app/certificate_manager/addCert', lang('base_add'))),
-		array(lang('certificate_manager_certificate'), lang('certificate_manager_files')),
-		$items
+        lang('certificate_manager_ssl'),
+        array(anchor_custom('/app/certificate_manager/add_cert', lang('base_add'))),
+        array(lang('certificate_manager_certificate'), lang('certificate_manager_files')),
+        $items
 );
-
-
