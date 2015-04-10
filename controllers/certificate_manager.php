@@ -45,7 +45,7 @@
  * @link       http://www.clearfoundation.com/docs/developer/apps/certificate_manager/
  */
 
-use clearos\apps\certificate_manager\Cert_Manager;
+use clearos\apps\certificate_manager\External_Certificates;
 
 class Certificate_Manager extends ClearOS_Controller
 {
@@ -71,7 +71,7 @@ class Certificate_Manager extends ClearOS_Controller
         //---------------
 
         $this->lang->load('certificate_manager');
-        $this->load->library('Cert_Manager');
+        $this->load->library('External_Certificates');
 
         // Load views
         //-----------
@@ -86,7 +86,7 @@ class Certificate_Manager extends ClearOS_Controller
 
     function detail_cert($cert) {
         $this->lang->load('certificate_manager');
-        $this->load->library('Cert_Manager');
+        $this->load->library('External_Certificates');
         $data['cert'] = $cert;
         $options['type'] = MY_Page::TYPE_WIDE_CONFIGURATION;
         $this->page->view_form('view_cert', $data, lang('certificate_manager_app_name'), $options);
@@ -94,7 +94,7 @@ class Certificate_Manager extends ClearOS_Controller
 
     function add_cert() {
         $this->lang->load('certificate_manager');
-        $this->load->library('Cert_Manager');
+        $this->load->library('External_Certificates');
 
         // prepare validation
         $file = $_FILES['cert_file'];
@@ -106,14 +106,14 @@ class Certificate_Manager extends ClearOS_Controller
         $file = $_FILES['ca_file'];
         if($file && $file['name']) $_POST['ca_file'] = 'ca_file';
 
-        $this->form_validation->set_policy('name',      'certificate_manager/Cert_Manager', 'validate_cert_name', TRUE);
-        $this->form_validation->set_policy('cert_file', 'certificate_manager/Cert_Manager', 'validate_crt_file',  TRUE);
-        $this->form_validation->set_policy('key_file',  'certificate_manager/Cert_Manager', 'validate_key_file',  TRUE);
-        $this->form_validation->set_policy('ca_file',   'certificate_manager/Cert_Manager', 'validate_ca_file',   FALSE);
+        $this->form_validation->set_policy('name',      'certificate_manager/External_Certificates', 'validate_cert_name', TRUE);
+        $this->form_validation->set_policy('cert_file', 'certificate_manager/External_Certificates', 'validate_crt_file',  TRUE);
+        $this->form_validation->set_policy('key_file',  'certificate_manager/External_Certificates', 'validate_key_file',  TRUE);
+        $this->form_validation->set_policy('ca_file',   'certificate_manager/External_Certificates', 'validate_ca_file',   FALSE);
         $form_ok = $this->form_validation->run();
 
         if (($this->input->post('submit') && $form_ok)) {
-            if(!($err = Cert_Manager::update($this->input))) {
+            if(!($err = External_Certificates::update($this->input))) {
                 redirect('/certificate_manager');
                 return;
             }
@@ -124,9 +124,9 @@ class Certificate_Manager extends ClearOS_Controller
 
     function remove_cert($cert) {
         $this->lang->load('certificate_manager');
-        $this->load->library('Cert_Manager');
+        $this->load->library('External_Certificates');
 
-        if(!($err = Cert_Manager::remove_cert($cert))) {
+        if(!($err = External_Certificates::remove_cert($cert))) {
             redirect('/certificate_manager');
             return;
         }

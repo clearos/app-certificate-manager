@@ -1,17 +1,57 @@
 <?php
 
 /**
- * Certificates library.
+ * External certificates library.
  *
- * @category    Apps
- * @package     Certificates
- * @subpackage  libraries
- * @author      Roman Kosnar <kosnar@apeko.cz>
- * @copyright   2014 Roman Kosnar / APEKO GROUP s.r.o.
- * @license     http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
+ * @category   apps
+ * @package    certificate-manager
+ * @subpackage libraries
+ * @author     Roman Kosnar <kosnar@apeko.cz>
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2014 Roman Kosnar / APEKO GROUP s.r.o.
+ * @copyright  2015 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
  */
 
+///////////////////////////////////////////////////////////////////////////////
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Lesser General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Lesser General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+//
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+// N A M E S P A C E
+///////////////////////////////////////////////////////////////////////////////
+
 namespace clearos\apps\certificate_manager;
+
+///////////////////////////////////////////////////////////////////////////////
+// B O O T S T R A P
+///////////////////////////////////////////////////////////////////////////////
+
+$bootstrap = getenv('CLEAROS_BOOTSTRAP') ? getenv('CLEAROS_BOOTSTRAP') : '/usr/clearos/framework/shared';
+require_once $bootstrap . '/bootstrap.php';
+
+///////////////////////////////////////////////////////////////////////////////
+// T R A N S L A T I O N S
+///////////////////////////////////////////////////////////////////////////////
+
+clearos_load_language('certificate_manager');
+
+///////////////////////////////////////////////////////////////////////////////
+// D E P E N D E N C I E S
+///////////////////////////////////////////////////////////////////////////////
 
 use \clearos\apps\base\Shell;
 use \clearos\apps\base\Daemon;
@@ -20,7 +60,28 @@ clearos_load_library('base/Shell');
 clearos_load_library('base/Daemon');
 clearos_load_language('certificate_manager');
 
-class Cert_Manager {
+///////////////////////////////////////////////////////////////////////////////
+// C L A S S
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * External certificates library.
+ *
+ * @category   apps
+ * @package    certificate-manager
+ * @subpackage libraries
+ * @author     Roman Kosnar <kosnar@apeko.cz>
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2014 Roman Kosnar / APEKO GROUP s.r.o.
+ * @copyright  2015 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
+ */
+
+class External_Certificates
+{
+    ///////////////////////////////////////////////////////////////////////////////
+    // C O N S T A N T S
+    ///////////////////////////////////////////////////////////////////////////////
 
     const CERT_CHECK = 'grep -h -e SSLCertificateFile -e ServerName /etc/httpd/conf.d/*';
     const CERT_PLACE  = '/etc/clearos/certificate_manager.d';
@@ -40,14 +101,34 @@ class Cert_Manager {
     const CERT_CRT = 'crt';
     const CERT_CA = 'ca';
 
+    ///////////////////////////////////////////////////////////////////////////////
+    // V A R I A B L E S
+    ///////////////////////////////////////////////////////////////////////////////
+
     private $certs = null;
+
+    protected $configuration = NULL;
+    protected $is_loaded = FALSE;
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // M E T H O D S
+    ///////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * SSL constructor.
+     */
+
+    public function __construct()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+    }
 
     /**
      * Returns array of available certificates
      */
     public static function get_certs() {
         $out = array();
-        foreach (Cert_Manager::load_certs() as $n => $line) {
+        foreach (External_Certificates::load_certs() as $n => $line) {
             if(preg_match('%^(.+)\\.([^\\.]+)$%', $line, $match)) {
                 $cert = $match[1];
                 if(is_null($out[$cert])) {
@@ -65,19 +146,19 @@ class Cert_Manager {
      */
     public static function get_certs_names() {
         $out = array();
-        foreach (Cert_Manager::load_certs() as $n => $line) {
+        foreach (External_Certificates::load_certs() as $n => $line) {
             if(preg_match('%^(.+)\\.([^\\.]+)$%', $line, $match)) {
                 $cert = $match[1];
                 $out[$cert] = $cert;
             }
         }
         ksort($out);
-        return array_merge($out, array(Cert_Manager::CERT_DEF => lang('certificate_manager_default')));
+        return array_merge($out, array(External_Certificates::CERT_DEF => lang('certificate_manager_default')));
     }
 
     private static function load_certs() {
         $env = new Shell();
-        $env->execute(Cert_Manager::LIST_CERTS, null, true);
+        $env->execute(External_Certificates::LIST_CERTS, null, true);
         return $env->get_output();
     }
 
@@ -87,9 +168,9 @@ class Cert_Manager {
      * @return string
      */
     public static function get_cert_details($cert) {
-        if(Cert_Manager::check_cert_name($cert)) {
+        if(External_Certificates::check_cert_name($cert)) {
             $env = new Shell();
-            $env->execute(sprintf(Cert_Manager::DETAIL_CERT, $cert), null, true);
+            $env->execute(sprintf(External_Certificates::DETAIL_CERT, $cert), null, true);
             $lines = $env->get_output();
             return implode("\n", $lines);
         }
@@ -101,15 +182,15 @@ class Cert_Manager {
      * @return string
      */
     public static function remove_cert($cert) {
-        if(Cert_Manager::check_cert_name($cert)) {
+        if(External_Certificates::check_cert_name($cert)) {
             // could not remove default ClearOS certificate
-            if($cert == Cert_Manager::CERT_DEF) {
+            if($cert == External_Certificates::CERT_DEF) {
                 $err[] = lang('certificate_manager_fail_cert_def');
                 return $err;
             }
             // check if certificate is not used
-            exec(Cert_Manager::CERT_CHECK, $out);
-            $crtRegex = "%".Cert_Manager::CERT_PLACE."/".$cert.".".Cert_Manager::CERT_CRT."%";
+            exec(External_Certificates::CERT_CHECK, $out);
+            $crtRegex = "%".External_Certificates::CERT_PLACE."/".$cert.".".External_Certificates::CERT_CRT."%";
             $nameRegex = "%ServerName[ \t]+([^ \t]+)%";
             $name = 'default';
             foreach ($out as $n => $line) {
@@ -125,7 +206,7 @@ class Cert_Manager {
             }
             // it is possible to safetly remove certificate
             $env = new Shell();
-            $env->execute(sprintf(Cert_Manager::DROP_CERT, $cert), null, true);
+            $env->execute(sprintf(External_Certificates::DROP_CERT, $cert), null, true);
             $lines = $env->get_output();
             return implode("\n", $lines);
         }
@@ -137,9 +218,9 @@ class Cert_Manager {
      * @return map
      */
     public static function get_cert($cert) {
-        if(Cert_Manager::check_cert_name($cert)) {
+        if(External_Certificates::check_cert_name($cert)) {
             $env = new Shell();
-            $env->execute(sprintf(Cert_Manager::GET_CERT, $cert), null, true);
+            $env->execute(sprintf(External_Certificates::GET_CERT, $cert), null, true);
             $lines = $env->get_output();
             $out = array();
             foreach ($lines as $n => $line) {
@@ -152,15 +233,15 @@ class Cert_Manager {
     }
 
     public static function get_cert_CA($cert) {
-        return Cert_Manager::get_cert_part($cert, Cert_Manager::CERT_CA);
+        return External_Certificates::get_cert_part($cert, External_Certificates::CERT_CA);
     }
 
     public static function get_cert_CRT($cert) {
-        return Cert_Manager::get_cert_part($cert, Cert_Manager::CERT_CRT);
+        return External_Certificates::get_cert_part($cert, External_Certificates::CERT_CRT);
     }
 
     public static function get_cert_KEY($cert) {
-        return Cert_Manager::get_cert_part($cert, Cert_Manager::CERT_KEY);
+        return External_Certificates::get_cert_part($cert, External_Certificates::CERT_KEY);
     }
 
     private static function get_cert_part($cert, $part) {
@@ -172,10 +253,10 @@ class Cert_Manager {
     public static function update($input) {
         $name = $input->post('name');
         $env = new Shell();
-        $env->execute("cp -f ".$_FILES['cert_file']['tmp_name']." ".Cert_Manager::CERT_PLACE."/$name.crt", null, true);
-        $env->execute("cp -f ".$_FILES['key_file']['tmp_name']." ".Cert_Manager::CERT_PLACE."/$name.key", null, true);
+        $env->execute("cp -f ".$_FILES['cert_file']['tmp_name']." ".External_Certificates::CERT_PLACE."/$name.crt", null, true);
+        $env->execute("cp -f ".$_FILES['key_file']['tmp_name']." ".External_Certificates::CERT_PLACE."/$name.key", null, true);
         if($_POST['ca_file']) {
-            $env->execute("cp -f ".$_FILES['ca_file']['tmp_name']." ".Cert_Manager::CERT_PLACE."/$name.ca", null, true);
+            $env->execute("cp -f ".$_FILES['ca_file']['tmp_name']." ".External_Certificates::CERT_PLACE."/$name.ca", null, true);
         }
     }
 
@@ -185,9 +266,9 @@ class Cert_Manager {
 
     public function validate_cert_name($name) {
         clearos_profile(__METHOD__, __LINE__);
-        if(Cert_Manager::check_cert_name($name)) {
+        if(External_Certificates::check_cert_name($name)) {
             if(is_null($this->certs)) {
-                $this->certs = Cert_Manager::get_certs();
+                $this->certs = External_Certificates::get_certs();
             }
             foreach ($this->certs as $cert => $k) {
                 if($cert == $name) {
@@ -201,7 +282,7 @@ class Cert_Manager {
 
     private function check_cert($cmd, $cert, $type) {
         $out = exec($cmd.$cert." 2>&1 ");
-        if(!preg_match(Cert_Manager::CHECK_RES, $out)) {
+        if(!preg_match(External_Certificates::CHECK_RES, $out)) {
             return lang('certificate_manager_fail_file'.$type);
         }
         if(!is_null($_POST['_cert_data_'])) {
@@ -215,17 +296,17 @@ class Cert_Manager {
 
     public function validate_crt_file($cert_file) {
         clearos_profile(check_cert, __LINE__);
-        return $this->check_cert(Cert_Manager::CHECK_CRT, $_FILES[$cert_file]['tmp_name'], 'CRT');
+        return $this->check_cert(External_Certificates::CHECK_CRT, $_FILES[$cert_file]['tmp_name'], 'CRT');
     }
 
     public function validate_key_file($key_file) {
         clearos_profile(__METHOD__, __LINE__);
-        return $this->check_cert(Cert_Manager::CHECK_KEY, $_FILES[$key_file]['tmp_name'], 'KEY');
+        return $this->check_cert(External_Certificates::CHECK_KEY, $_FILES[$key_file]['tmp_name'], 'KEY');
     }
 
     public function validate_ca_file($ca_file) {
         clearos_profile(__METHOD__, __LINE__);
-        exec(Cert_Manager::CHECK_CA.$_FILES[$ca_file]['tmp_name'].' '.$_FILES['cert_file']['tmp_name'], $out);
+        exec(External_Certificates::CHECK_CA.$_FILES[$ca_file]['tmp_name'].' '.$_FILES['cert_file']['tmp_name'], $out);
         foreach ($out as $n => $line) {
             if(preg_match("/^error (.*)$/", $line, $match)) {
                 return lang('certificate_manager_fail_file_CA').': '.$match[1];

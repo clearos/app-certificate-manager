@@ -16,9 +16,9 @@
 // Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
 
-use clearos\apps\certificate_manager\Cert_Manager;
+use clearos\apps\certificate_manager\External_Certificates;
 
-$this->lang->load('Cert_Manager');
+$this->lang->load('External_Certificates');
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form
@@ -27,7 +27,7 @@ $this->lang->load('Cert_Manager');
 if($errs)
     echo infobox_warning(lang('base_error'), implode("<br>", $errs));
 
-$name = $cert == Cert_Manager::CERT_DEF ? 'Default' : $cert;
+$name = $cert == External_Certificates::CERT_DEF ? 'Default' : $cert;
 
 ?>
 <div class="theme-summary-table-container ui-widget">
@@ -43,7 +43,7 @@ $name = $cert == Cert_Manager::CERT_DEF ? 'Default' : $cert;
     </div>
     <div class="dataTables_wrapper">
         <div class="fg-toolbar ui-toolbar ui-widget-header ui-corner-tl ui-corner-tr ui-helper-clearfix"></div>
-        <pre style="white-space: pre-wrap; margin: 0 10px;"><?php echo Cert_Manager::get_cert_details($cert); ?></pre>
+        <pre style="white-space: pre-wrap; margin: 0 10px;"><?php echo External_Certificates::get_cert_details($cert); ?></pre>
         <div class="fg-toolbar ui-toolbar ui-widget-header ui-corner-bl ui-corner-br ui-helper-clearfix"></div>
     </div>
 </div>

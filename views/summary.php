@@ -34,7 +34,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 use \clearos\apps\certificate_manager\SSL as SSL;
-use clearos\apps\certificate_manager\Cert_Manager;
+use clearos\apps\certificate_manager\External_Certificates;
 
 $this->lang->load('certificate_manager');
 
@@ -81,13 +81,13 @@ echo summary_table(
 );
 $items = array();
 
-foreach (Cert_Manager::get_certs() as $cert => $files) {
+foreach (External_Certificates::get_certs() as $cert => $files) {
     $buttons = array();
     $buttons[] = anchor_custom('/app/certificate_manager/detail_cert/'.$cert, lang('certificate_manager_detail'));
     if(strcmp($cert, '_default_') != 0) {
         $buttons[] = anchor_custom('/app/certificate_manager/remove_cert/'.$cert, lang('base_delete'));
     }
-    $name = $cert == Cert_Manager::CERT_DEF ? lang('certificate_manager_default') : $cert;
+    $name = $cert == External_Certificates::CERT_DEF ? lang('certificate_manager_default') : $cert;
     $item['title'] = $name;
     $item['action'] = NULL;
     $item['anchors'] = button_set($buttons);
