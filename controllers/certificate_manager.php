@@ -45,7 +45,7 @@
  * @link       http://www.clearfoundation.com/docs/developer/apps/certificate_manager/
  */
 
-use clearos\apps\certificate_manager\CertManager;
+use clearos\apps\certificate_manager\Cert_Manager;
 
 class Certificate_Manager extends ClearOS_Controller
 {
@@ -71,7 +71,7 @@ class Certificate_Manager extends ClearOS_Controller
         //---------------
 
         $this->lang->load('certificate_manager');
-		$this->load->library('CertManager');
+        $this->load->library('Cert_Manager');
 
         // Load views
         //-----------
@@ -84,53 +84,54 @@ class Certificate_Manager extends ClearOS_Controller
         $this->page->view_forms($views, lang('certificate_manager_app_name'));
     }
 
-	function detilCert($cert) {
-		$this->lang->load('certificate_manager');
-		$this->load->library('CertManager');
-		$data['cert'] = $cert;
-		$options['type'] = MY_Page::TYPE_WIDE_CONFIGURATION;
-		$this->page->view_form('viewCert', $data, lang('certificate_manager_app_name'), $options);
-	}
+    function detail_cert($cert) {
+        $this->lang->load('certificate_manager');
+        $this->load->library('Cert_Manager');
+        $data['cert'] = $cert;
+        $options['type'] = MY_Page::TYPE_WIDE_CONFIGURATION;
+        $this->page->view_form('view_cert', $data, lang('certificate_manager_app_name'), $options);
+    }
 
-	function addCert() {
-		$this->lang->load('certificate_manager');
-		$this->load->library('CertManager');
+    function add_cert() {
+        $this->lang->load('certificate_manager');
+        $this->load->library('Cert_Manager');
 
-		// prepare validation
-		$file = $_FILES['certFile'];
-		if($file && $file['name']) $_POST['certFile'] = 'certFile';
+        // prepare validation
+        $file = $_FILES['cert_file'];
+        if($file && $file['name']) $_POST['cert_file'] = 'cert_file';
 
-		$file = $_FILES['keyFile'];
-		if($file && $file['name']) $_POST['keyFile'] = 'keyFile';
+        $file = $_FILES['key_file'];
+        if($file && $file['name']) $_POST['key_file'] = 'key_file';
 
-		$file = $_FILES['caFile'];
-		if($file && $file['name']) $_POST['caFile'] = 'caFile';
+        $file = $_FILES['ca_file'];
+        if($file && $file['name']) $_POST['ca_file'] = 'ca_file';
 
-		$this->form_validation->set_policy('name',		'certificate_manager/CertManager', 'validate_cert_name',	TRUE);
-		$this->form_validation->set_policy('certFile',	'certificate_manager/CertManager', 'validate_crt_file',		TRUE);
-		$this->form_validation->set_policy('keyFile',	'certificate_manager/CertManager', 'validate_key_file',		TRUE);
-		$this->form_validation->set_policy('caFile',	'certificate_manager/CertManager', 'validate_ca_file',		FALSE);
-		$form_ok = $this->form_validation->run();
+        $this->form_validation->set_policy('name',      'certificate_manager/Cert_Manager', 'validate_cert_name', TRUE);
+        $this->form_validation->set_policy('cert_file', 'certificate_manager/Cert_Manager', 'validate_crt_file',  TRUE);
+        $this->form_validation->set_policy('key_file',  'certificate_manager/Cert_Manager', 'validate_key_file',  TRUE);
+        $this->form_validation->set_policy('ca_file',   'certificate_manager/Cert_Manager', 'validate_ca_file',   FALSE);
+        $form_ok = $this->form_validation->run();
 
-		if (($this->input->post('submit') && $form_ok)) {
-			if(!($err = CertManager::update($this->input))) {
-				redirect('/certificate_manager');
-				return;
-			}
-		}
-		$data['errs'] = $err;
-		$this->page->view_form('addCert', $data, lang('certificate_manager_app_name'));
-	}
+        if (($this->input->post('submit') && $form_ok)) {
+            if(!($err = Cert_Manager::update($this->input))) {
+                redirect('/certificate_manager');
+                return;
+            }
+        }
+        $data['errs'] = $err;
+        $this->page->view_form('add_cert', $data, lang('certificate_manager_app_name'));
+    }
 
-	function removeCert($cert) {
-		$this->lang->load('certificate_manager');
-		$this->load->library('CertManager');
+    function remove_cert($cert) {
+        $this->lang->load('certificate_manager');
+        $this->load->library('Cert_Manager');
 
-		if(!($err = CertManager::certRemove($cert))) {
- 			redirect('/certificate_manager');
-			return;
-		}
-		$data['errs'] = $err;
-		$this->page->view_form('certificates', $data, lang('certificate_manager_app_name'));
-	}
+        if(!($err = Cert_Manager::remove_cert($cert))) {
+            redirect('/certificate_manager');
+            return;
+        }
+        $data['errs'] = $err;
+        $data['cert'] = $cert;
+        $this->page->view_form('view_cert', $data, lang('certificate_manager_app_name'));
+    }
 }
