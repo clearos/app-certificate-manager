@@ -40,11 +40,13 @@ $lang['certificate_manager_web_browser_warning_description'] = 'This web interfa
 $lang['certificate_manager_web_interface_is_restarting'] = 'The web interface is restarting with the new security certificates.';
 $lang['certificate_manager_wizard_description'] = 'In order to enhance the overall security of your system, security certificates are required for accessing many apps.';
 
-$lang['certificate_manager_add_cert'] = 'Add certificate';
+$lang['certificate_manager_external_certificates'] = 'External Certificates';
+$lang['certificate_manager_certificate_details'] = 'Certificate Details';
+$lang['certificate_manager_add_certificate'] = 'Add Certificate';
+
 $lang['certificate_manager_ca_file'] = '.CA file';
 $lang['certificate_manager_cert'] = 'Certificate';
 $lang['certificate_manager_cert_file'] = '.CRT file';
-$lang['certificate_manager_cert_detail'] = 'Certificate details: ';
 $lang['certificate_manager_default'] = 'Default Certificate';
 $lang['certificate_manager_detail'] = 'Detail';
 $lang['certificate_manager_name'] = 'Name';

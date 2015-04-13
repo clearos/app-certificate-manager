@@ -34,6 +34,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 use \clearos\apps\certificate_manager\SSL as SSL;
+use clearos\apps\certificate_manager\External_Certificates;
 
 $this->lang->load('certificate_manager');
 
@@ -42,29 +43,43 @@ $this->lang->load('certificate_manager');
 ///////////////////////////////////////////////////////////////////////////////
 
 $headers = array(
-    lang('base_description'),
     lang('certificate_manager_certificate'),
+    lang('certificate_manager_files')
+);
+
+$anchors = array(
+    anchor_custom('/app/certificate_manager/external/add', lang('base_add'))
 );
 
 ///////////////////////////////////////////////////////////////////////////////
 // Items
 ///////////////////////////////////////////////////////////////////////////////
 
-foreach ($certificates as $cert => $details) {
-    // Skip user certificates
-    if ($details['type'] === SSL::CERT_TYPE_USER)
-        continue;
+$items = array();
 
-    $item['title'] = $cert;
-    $item['action'] = '/app/certificate_manager/certificate/view/' . $cert;
-    $item['anchors'] = button_set(
-        array(anchor_view('/app/certificate_manager/certificate/view/' . $cert, 'high'))
-    );
-    $item['details'] = array(
-        $details['app_description'],
-        $cert,
+foreach ($certificates as $cert => $files) {
+    $buttons = array();
+    $buttons[] = anchor_custom(
+        '/app/certificate_manager/external/view/' . $cert,
+        lang('certificate_manager_detail')
     );
 
+    if (strcmp($cert, '_default_') != 0)
+        $buttons[] = anchor_custom('/app/certificate_manager/external/delete/' . $cert, lang('base_delete'));
+
+    // FIXME: review
+    // $name = $cert == External_Certificates::CERT_DEF ? lang('certificate_manager_default') : $cert;
+    $name = $cert;
+
+    $item['title'] = $name;
+    $item['action'] = NULL;
+    $item['anchors'] = button_set($buttons);
+    $parts = array();
+    foreach ($files as $file => $s)
+        $parts[] = $file;
+
+    sort($parts);
+    $item['details'] = array($name, implode(", ", $parts));
     $items[] = $item;
 }
 
@@ -73,8 +88,8 @@ foreach ($certificates as $cert => $details) {
 ///////////////////////////////////////////////////////////////////////////////
 
 echo summary_table(
-    lang('certificate_manager_certificates'),
-    array(),
+    lang('certificate_manager_external_certificates'),
+    $anchors,
     $headers,
     $items
 );

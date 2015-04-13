@@ -45,8 +45,6 @@
  * @link       http://www.clearfoundation.com/docs/developer/apps/certificate_manager/
  */
 
-use clearos\apps\certificate_manager\External_Certificates;
-
 class Certificate_Manager extends ClearOS_Controller
 {
     /**
@@ -71,7 +69,6 @@ class Certificate_Manager extends ClearOS_Controller
         //---------------
 
         $this->lang->load('certificate_manager');
-        $this->load->library('External_Certificates');
 
         // Load views
         //-----------
@@ -82,56 +79,5 @@ class Certificate_Manager extends ClearOS_Controller
             $views[] = 'certificate_manager/policy';
 
         $this->page->view_forms($views, lang('certificate_manager_app_name'));
-    }
-
-    function detail_cert($cert) {
-        $this->lang->load('certificate_manager');
-        $this->load->library('External_Certificates');
-        $data['cert'] = $cert;
-        $options['type'] = MY_Page::TYPE_WIDE_CONFIGURATION;
-        $this->page->view_form('view_cert', $data, lang('certificate_manager_app_name'), $options);
-    }
-
-    function add_cert() {
-        $this->lang->load('certificate_manager');
-        $this->load->library('External_Certificates');
-
-        // prepare validation
-        $file = $_FILES['cert_file'];
-        if($file && $file['name']) $_POST['cert_file'] = 'cert_file';
-
-        $file = $_FILES['key_file'];
-        if($file && $file['name']) $_POST['key_file'] = 'key_file';
-
-        $file = $_FILES['ca_file'];
-        if($file && $file['name']) $_POST['ca_file'] = 'ca_file';
-
-        $this->form_validation->set_policy('name',      'certificate_manager/External_Certificates', 'validate_cert_name', TRUE);
-        $this->form_validation->set_policy('cert_file', 'certificate_manager/External_Certificates', 'validate_crt_file',  TRUE);
-        $this->form_validation->set_policy('key_file',  'certificate_manager/External_Certificates', 'validate_key_file',  TRUE);
-        $this->form_validation->set_policy('ca_file',   'certificate_manager/External_Certificates', 'validate_ca_file',   FALSE);
-        $form_ok = $this->form_validation->run();
-
-        if (($this->input->post('submit') && $form_ok)) {
-            if(!($err = External_Certificates::update($this->input))) {
-                redirect('/certificate_manager');
-                return;
-            }
-        }
-        $data['errs'] = $err;
-        $this->page->view_form('add_cert', $data, lang('certificate_manager_app_name'));
-    }
-
-    function remove_cert($cert) {
-        $this->lang->load('certificate_manager');
-        $this->load->library('External_Certificates');
-
-        if(!($err = External_Certificates::remove_cert($cert))) {
-            redirect('/certificate_manager');
-            return;
-        }
-        $data['errs'] = $err;
-        $data['cert'] = $cert;
-        $this->page->view_form('view_cert', $data, lang('certificate_manager_app_name'));
     }
 }

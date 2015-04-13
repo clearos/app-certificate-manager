@@ -25,13 +25,13 @@ $this->lang->load('certificate_manager');
 if($errs)
     echo infobox_warning(lang('base_error'), implode("<br>", $errs));
 
-echo form_open_multipart('certificate_manager/add_cert');
-echo form_header(lang('certificate_manager_add_cert'));
+echo form_open_multipart('certificate_manager/external/add');
+echo form_header(lang('certificate_manager_add_certificate'));
 
-echo field_input('name',      $name,     lang('certificate_manager_name'),      false);
-echo field_file ('cert_file', $certFile, lang('certificate_manager_cert_file'), false);
-echo field_file ('key_file',  $keyFile,  lang('certificate_manager_key_file'),  false);
-echo field_file ('ca_file',   $caFile,   lang('certificate_manager_ca_file'),   false);
+echo field_input('name', $name, lang('certificate_manager_name'));
+echo field_file ('cert_file', $certFile, lang('certificate_manager_cert_file'));
+echo field_file ('key_file', $keyFile, lang('certificate_manager_key_file'));
+echo field_file ('ca_file', $caFile, lang('certificate_manager_ca_file'));
 
 echo field_button_set(array(
             form_submit_add('submit'),
@@ -40,10 +40,3 @@ echo field_button_set(array(
 
 echo form_footer();
 echo form_close();
-
-?>
-<style>
-    .theme-field-file {
-        float: none;
-    }
-</style>
