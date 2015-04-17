@@ -3,8 +3,6 @@
 # Prepare certificate storage
 #-----------------------
 
-mkdir /etc/clearos/certificate_manager.d/
-
 rm -f /etc/clearos/certificate_manager.d/_default_.crt
 rm -f /etc/clearos/certificate_manager.d/_default_.key
 
