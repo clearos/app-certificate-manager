@@ -5,7 +5,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 $app['basename'] = 'certificate_manager';
-$app['version'] = '2.0.21';
+$app['version'] = '2.0.20';
 $app['release'] = '1';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
@@ -93,7 +93,9 @@ $app['core_file_manifest'] = array(
 );
 
 $app['core_directory_manifest'] = array(
-    '/etc/clearos/certificate_manager.d' => array(),
+    '/etc/clearos/certificate_manager.d' => array(
+        'mode' => '0700',
+    ),
     '/var/clearos/certificate_manager' => array(),
     '/var/clearos/certificate_manager/backup' => array(),
     '/var/clearos/events/certificate_manager' => array(),
