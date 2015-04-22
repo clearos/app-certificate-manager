@@ -1,7 +1,7 @@
 
 Name: app-certificate-manager
 Epoch: 1
-Version: 2.0.20
+Version: 2.0.24
 Release: 1%{dist}
 Summary: Certificate Manager
 License: GPLv3

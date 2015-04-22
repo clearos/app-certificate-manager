@@ -58,6 +58,6 @@ if [ ! -e /etc/clearos/certificate_manager.d/_default_.crt ]; then
     ln -s /etc/pki/tls/certs/localhost.crt /etc/clearos/certificate_manager.d/_default_.crt
 fi
 
-if [ -! -e /etc/clearos/certificate_manager.d/_default_.key ]; then
+if [ ! -e /etc/clearos/certificate_manager.d/_default_.key ]; then
     ln -s /etc/pki/tls/private/localhost.key /etc/clearos/certificate_manager.d/_default_.key
 fi
