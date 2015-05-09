@@ -1,7 +1,7 @@
 
 Name: app-certificate-manager
 Epoch: 1
-Version: 2.0.24
+Version: 2.0.30
 Release: 1%{dist}
 Summary: Certificate Manager
 License: GPLv3
@@ -41,7 +41,7 @@ This package provides the core API and libraries.
 mkdir -p -m 755 %{buildroot}/usr/clearos/apps/certificate_manager
 cp -r * %{buildroot}/usr/clearos/apps/certificate_manager/
 
-install -d -m 0700 %{buildroot}/etc/clearos/certificate_manager.d
+install -d -m 0755 %{buildroot}/etc/clearos/certificate_manager.d
 install -d -m 0755 %{buildroot}/var/clearos/certificate_manager
 install -d -m 0755 %{buildroot}/var/clearos/certificate_manager/backup
 install -d -m 0755 %{buildroot}/var/clearos/events/certificate_manager
