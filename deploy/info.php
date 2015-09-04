@@ -27,6 +27,7 @@ $app['subcategory'] = lang('base_subcategory_settings');
 
 $app['controllers']['certificate_manager']['title'] = $app['name'];
 $app['controllers']['certificate']['title'] = lang('certificate_manager_certificates');
+$app['controllers']['external']['title'] = lang('certificate_manager_external_certificates');
 $app['controllers']['browser']['title'] = lang('certificate_manager_web_browser_warning');
 $app['controllers']['policy']['title'] = lang('base_app_policy');
 

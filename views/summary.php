@@ -61,7 +61,7 @@ foreach ($certificates as $cert => $details) {
         array(anchor_view('/app/certificate_manager/certificate/view/' . $cert, 'high'))
     );
     $item['details'] = array(
-        $details['app_description'],
+        $details['cert_description'],
         $cert,
     );
 

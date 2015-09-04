@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Certificate manager class.
+ * SSL self-signed certifates class.
  *
  * @category   apps
  * @package    certificate-manager
@@ -174,6 +174,7 @@ class SSL extends Engine
 
     // Files and paths
     const PATH_SSL = '/etc/pki/CA';
+    const PATH_SSL_PRIVATE = '/etc/pki/CA/private';
     const FILE_CONF = '/etc/pki/CA/openssl.cnf';
     const FILE_INDEX = '/etc/pki/CA/index.txt';
     const FILE_CA_CRT = '/etc/pki/CA/ca-cert.pem';
@@ -299,7 +300,7 @@ class SSL extends Engine
         $this->configuration[$req_dname]['commonName'] = $common_name;
         $this->configuration['global']['dir'] = SSL::PATH_SSL;
         $this->configuration['req']['encrypt_key'] = 'no';
-        $this->configuration['req']['default_keyfile'] = SSL::PATH_SSL . '/private/' . $prefix . '-key.pem';
+        $this->configuration['req']['default_keyfile'] = SSL::PATH_SSL_PRIVATE . '/' . $prefix . '-key.pem';
 
         if (!isset($this->configuration['req']['distinguished_name']))
             $this->configuration['req']['distinguished_name'] = 'req_distinguished_name';
@@ -323,7 +324,7 @@ class SSL extends Engine
         $configfile->delete();
 
         // Change file attributes
-        $file = new File(self::PATH_SSL . '/private/' . $prefix . '-key.pem', TRUE);
+        $file = new File(self::PATH_SSL_PRIVATE . '/' . $prefix . '-key.pem', TRUE);
         $file->chmod(600);
         $file->chown('root', 'root');
 
@@ -514,7 +515,7 @@ class SSL extends Engine
 
         foreach ($private_keys as $private_key) {
             // Get public/private key pairs
-            $key = SSL::PATH_SSL . "/private/" . $private_key;
+            $key = SSL::PATH_SSL_PRIVATE . "/" . $private_key;
             $cert = SSL::PATH_SSL . "/" . preg_replace("/-key/i", "-cert", $private_key);
 
             $args = "smime -decrypt -in $filename -recip $cert -inkey $key -out $tmp_file";
@@ -579,7 +580,7 @@ class SSL extends Engine
         if ($file->exists())
             $file->delete();
 
-        $file = new File(self::PATH_SSL . "/private/$key", TRUE);
+        $file = new File(self::PATH_SSL_PRIVATE . "/$key", TRUE);
         if ($file->exists())
             $file->delete();
     }
@@ -950,11 +951,11 @@ class SSL extends Engine
         $temp_file->delete();
 
         if (preg_match('/^ca-cert/', $basename)) {
-            $attributes['app'] = 'ca';
-            $attributes['app_description'] = lang('certificate_manager_certificate_authority');
+            $attributes['cert_name'] = 'ca';
+            $attributes['cert_description'] = lang('certificate_manager_certificate_authority');
         } else if (preg_match('/^sys-0/', $basename)) {
-            $attributes['app'] = 'default';
-            $attributes['app_description'] = lang('certificate_manager_default_certificate');
+            $attributes['cert_name'] = 'default';
+            $attributes['cert_description'] = lang('certificate_manager_default_certificate');
         }
 
         return $attributes;

@@ -244,6 +244,42 @@ class External_Certificates
     }
 
     /**
+     * Returns list of available server certificates.
+     *
+     * @return array list of available server certificates
+     * @throws Engine_Exception
+     */
+
+    public function get_server_certificates()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $certs = array();
+
+        foreach ($this->_load_certs() as $line) {
+            $match = array();
+            if (preg_match('%^(.+)\\.([^\\.]+)$%', $line, $match)) {
+                $cert = $match[1];
+                if (!array_key_exists($cert, $certs))
+                    $certs[$cert] = array();
+
+                $filename = self::PATH_CERTIFICATES . '/' . $cert . '.' . $match['2'];
+
+                if ($match[2] === 'ca')
+                    $certs[$cert]['ca-filename'] = $filename;
+                elseif ($match[2] === 'crt')
+                    $certs[$cert]['certificate-filename'] = $filename;
+                elseif ($match[2] === 'key')
+                    $certs[$cert]['key-filename'] = $filename;
+            }
+        }
+
+        ksort($certs);
+
+        return $certs;
+    }
+
+    /**
      * Removes certificate.
      *
      * @param string $cert certificate name
