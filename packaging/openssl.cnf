@@ -28,7 +28,7 @@ name_opt                       = ca_default
 cert_opt                       = ca_default
 default_days                   = 9125
 default_crl_days               = 30
-default_md                     = default
+default_md                     = sha256
 preserve                       = no
 policy                         = policy_anything
 
@@ -53,7 +53,7 @@ emailAddress                   = optional
 prompt                         = no
 default_bits                   = 2048
 default_md                     = sha256
-default_keyfile                = /etc/pki/CA/private/cakey.pem
+default_keyfile                = /etc/pki/CA/private/ca-key.pem
 distinguished_name             = req_distinguished_name
 attributes                     = req_attributes
 x509_extensions                = v3_ca

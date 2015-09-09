@@ -190,6 +190,7 @@ class SSL extends Engine
     const DEFAULT_CA_EXPIRY = 9125; // 25 yrs in days
     const DEFAULT_KEY_SIZE = 2048;
     const DEFAULT_DH_KEY_SIZE = 2048;
+    const DEFAULT_MD = 'sha256';
 
     // Certificate types and prefixes
     const CERT_TYPE_CA = 'ca';
@@ -440,6 +441,7 @@ class SSL extends Engine
         $country = empty($country) ? 'XX' : $country;
 
         $this->set_rsa_key_size(self::DEFAULT_KEY_SIZE);
+        $this->set_md(self::DEFAULT_MD);
         $this->set_organization_name($org_name);
         $this->set_organizational_unit($org_unit);
         $this->set_email_address($username . "@" . $domain);
@@ -1376,6 +1378,7 @@ class SSL extends Engine
                 // Create CA
                 $ssl = new SSL();
                 $ssl->set_rsa_key_size(self::DEFAULT_KEY_SIZE);
+                $ssl->set_md(self::DEFAULT_MD);
                 $ssl->set_common_name('ca.' . $domain);
                 $ssl->set_organization_name($organization);
                 $ssl->set_organizational_unit($unit);
@@ -1396,6 +1399,7 @@ class SSL extends Engine
         if (!$syscert_exists) {
             $ssl = new SSL();
             $ssl->set_rsa_key_size(self::DEFAULT_KEY_SIZE);
+            $ssl->set_md(self::DEFAULT_MD);
             $ssl->set_organization_name($organization);
             $ssl->set_organizational_unit($unit);
             $ssl->set_email_address('security@' . $domain);
@@ -1833,6 +1837,24 @@ class SSL extends Engine
             $this->configuration[$req_dname]['countryName'] = $code;
         else
             $this->_set_default_value($req_dname, 'countryName_default', $code);
+    }
+
+    /**
+     * Sets RSA key size.
+     *
+     * @param string $key_size key size
+     *
+     * @return void
+     */
+
+    public function set_md($md)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! $this->is_loaded)
+            $this->configuration = $this->_load_configuration();
+
+        $this->configuration['req']['default_md'] = $md;
     }
 
     /**

@@ -34,7 +34,7 @@ if ( [ ! -s "$KEY" ] || [ ! -s $CRT ] ); then
 
     # Generate keys
     logger -p local6.notice -t installer "app-certificate-manager-core - creating bootstrap key"
-    /usr/bin/openssl genrsa -out $KEY 1024 2>/dev/null
+    /usr/bin/openssl genrsa -out $KEY 2048 2>/dev/null
 
     logger -p local6.notice -t installer "app-certificate-manager-core - creating bootstrap certificate"
     /usr/bin/openssl req -new -key $KEY -x509 -out $CRT -config /var/tmp/openssl.cnf.$$ \
@@ -51,13 +51,13 @@ fi
 
 /usr/clearos/apps/certificate_manager/deploy/master-slave
 
-# Prepare certificate storage
-#-----------------------
+# Remove experimental default certificate
+#----------------------------------------
 
-if [ ! -e /etc/clearos/certificate_manager.d/_default_.crt ]; then
-    ln -s /etc/pki/tls/certs/localhost.crt /etc/clearos/certificate_manager.d/_default_.crt
+if [ -e /etc/clearos/certificate_manager.d/_default_.crt ]; then
+    rm -f /etc/clearos/certificate_manager.d/_default_.crt
 fi
 
-if [ ! -e /etc/clearos/certificate_manager.d/_default_.key ]; then
-    ln -s /etc/pki/tls/private/localhost.key /etc/clearos/certificate_manager.d/_default_.key
+if [ -e /etc/clearos/certificate_manager.d/_default_.key ]; then
+    rm -f /etc/clearos/certificate_manager.d/_default_.key
 fi

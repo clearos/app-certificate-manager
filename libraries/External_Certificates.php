@@ -102,8 +102,6 @@ class External_Certificates
     const CHECK_CA = 'openssl verify -ignore_critical -CAfile ';
     const CHECK_RES = '%^Modulus=[A-F0-9]+$%';
 
-    const CERT_DEFAULT = '_default_';
-
     const CERT_KEY = 'key';
     const CERT_CRT = 'crt';
     const CERT_CA = 'ca';
@@ -240,7 +238,7 @@ class External_Certificates
 
         ksort($certs);
 
-        return array_merge($certs, array(self::CERT_DEFAULT => lang('certificate_manager_default')));
+        return $certs;
     }
 
     /**
@@ -290,11 +288,7 @@ class External_Certificates
     {
         clearos_profile(__METHOD__, __LINE__);
 
-//      Validation_Exception::is_valid($this->validate_cert($cert));
-
-        // Do not remove default ClearOS certificate
-        if ($cert == External_Certificates::CERT_DEFAULT)
-            throw new Engine_Exception(lang('certificate_manager_fail_cert_def'));
+        // Validation_Exception::is_valid($this->validate_cert($cert));
 
         // check if certificate is not used
         exec(External_Certificates::CERT_CHECK, $out);
