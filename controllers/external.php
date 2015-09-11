@@ -85,6 +85,8 @@ class External extends ClearOS_Controller
      * Detail view.
      *
      * @param string $cert certificate name
+     *
+     * @return view
      */
 
     function view($cert)
@@ -116,6 +118,8 @@ class External extends ClearOS_Controller
 
     /**
      * Add view.
+     *
+     * @return view
      */
 
     function add()
@@ -161,7 +165,17 @@ class External extends ClearOS_Controller
         $this->page->view_form('external_add', $data, lang('certificate_manager_app_name'));
     }
 
-    function remove_cert($cert) {
+
+    /**
+     * Remove view.
+     *
+     * @param string $cert certificate
+     *
+     * @return view
+     */
+
+    function remove_cert($cert)
+    {
         $this->lang->load('certificate_manager');
         $this->load->library('External_Certificates');
 
