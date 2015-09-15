@@ -103,6 +103,7 @@ class Certificate_Manager extends Engine
     /**
      * Returns a list of available certificates.
      *
+     * @return array certificates
      */
 
     public function get_certificates()
@@ -138,6 +139,7 @@ class Certificate_Manager extends Engine
     /**
      * Returns a list of available certificates.
      *
+     * @return array list of available certificate
      */
 
     public function get_list()
