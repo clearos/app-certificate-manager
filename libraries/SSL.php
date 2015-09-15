@@ -1336,13 +1336,13 @@ class SSL extends Engine
     /**
      * Initializes the default certificate authority and system certificate.
      *
-     * @param string $hostname    hostname
-     * @param string $domain      domain
-     * @param string $organiation organization name
-     * @param string $unit        organization unit
-     * @param string $city        city
-     * @param string $region      region
-     * @param string $country     country
+     * @param string $hostname     hostname
+     * @param string $domain       domain
+     * @param string $organization organization name
+     * @param string $unit         organization unit
+     * @param string $city         city
+     * @param string $region       region
+     * @param string $country      country
      *
      * @return void
      * @throws Certificate_Not_Found_Exception, Engine_Exception
@@ -1840,9 +1840,9 @@ class SSL extends Engine
     }
 
     /**
-     * Sets RSA key size.
+     * Sets default MD.
      *
-     * @param string $key_size key size
+     * @param string $md default MD
      *
      * @return void
      */
