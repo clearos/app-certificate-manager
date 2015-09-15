@@ -59,16 +59,11 @@ $items = array();
 
 foreach ($certificates as $cert => $files) {
     $buttons = array();
-    $buttons[] = anchor_custom(
-        '/app/certificate_manager/external/view/' . $cert,
-        lang('certificate_manager_detail')
-    );
+    $buttons[] = anchor_view('/app/certificate_manager/external/view/' . $cert);
 
     if (strcmp($cert, '_default_') != 0)
         $buttons[] = anchor_custom('/app/certificate_manager/external/delete/' . $cert, lang('base_delete'));
 
-    // FIXME: review
-    // $name = $cert == External_Certificates::CERT_DEF ? lang('certificate_manager_default') : $cert;
     $name = $cert;
 
     $item['title'] = $name;

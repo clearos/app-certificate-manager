@@ -11,6 +11,7 @@
  * @copyright  2014 Roman Kosnar / APEKO GROUP s.r.o.
  * @copyright  2015 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/certificate_manager/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -56,10 +57,12 @@ clearos_load_language('certificate_manager');
 // Classes
 //--------
 
+use \clearos\apps\base\File as File;
 use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\base\Shell as Shell;
 use \clearos\apps\certificate_manager\External_Certificates as External_Certificates;
 
+clearos_load_library('base/File');
 clearos_load_library('base/Folder');
 clearos_load_library('base/Shell');
 clearos_load_library('certificate_manager/External_Certificates');
@@ -94,29 +97,12 @@ class External_Certificates
     // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////////
 
-    const CERT_CHECK = 'grep -h -e SSLCertificateFile -e ServerName /etc/httpd/conf.d/*';
-    const DROP_CERT = 'rm -f /etc/clearos/certificate_manager.d/%s\.{crt,key,ca}';
-
-    const CHECK_CRT = 'openssl x509 -noout -modulus -in ';
-    const CHECK_KEY = 'openssl rsa -noout -modulus -in ';
-    const CHECK_CA = 'openssl verify -ignore_critical -CAfile ';
-    const CHECK_RES = '%^Modulus=[A-F0-9]+$%';
-
-    const CERT_KEY = 'key';
-    const CERT_CRT = 'crt';
-    const CERT_CA = 'ca';
+    const TYPE_CERTIFICATE = 'certificate';
+    const TYPE_KEY = 'key';
+    const TYPE_CA = 'ca';
 
     const COMMAND_OPENSSL = '/usr/bin/openssl';
     const PATH_CERTIFICATES = '/etc/clearos/certificate_manager.d';
-
-    ///////////////////////////////////////////////////////////////////////////////
-    // V A R I A B L E S
-    ///////////////////////////////////////////////////////////////////////////////
-
-    private $certs = NULL;
-
-    protected $configuration = NULL;
-    protected $is_loaded = FALSE;
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
@@ -132,9 +118,71 @@ class External_Certificates
     }
 
     /**
+     * Adds an external certificate.
+     *
+     * @param string $name basename of certificate
+     * @param string $cert path to certificate file
+     * @param string $key  path to key file
+     * @param string $ca   path to $ca file
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    public function add($name, $cert, $key, $ca)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        Validation_Exception::is_valid($this->validate_name($cert));
+
+        if (!empty($cert)) {
+            $file = new File($cert);
+            $file->copy_to(self::PATH_CERTIFICATES . '/' . $name . '.crt');
+        }
+
+        if (!empty($key)) {
+            $file = new File($key);
+            $file->copy_to(self::PATH_CERTIFICATES . '/' . $name . '.key');
+        }
+
+        if (!empty($ca)) {
+            $file = new File($ca);
+            $file->copy_to(self::PATH_CERTIFICATES . '/' . $name . '.ca');
+        }
+    }
+
+    /**
+     * Removes certificate.
+     *
+     * @param string $name basename of certificate
+     *
+     * @return string
+     * @throws Engine_Exception
+     */
+
+    public function delete($name)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        Validation_Exception::is_valid($this->validate_name($name));
+
+        // check if certificate is not used
+        // FIXME: need a callback here
+
+        $extensions = array('ca', 'crt', 'key');
+
+        foreach ($extensions as $extension) {
+            $file = new File(self::PATH_CERTIFICATES . '/' . $name . '.' . $extension);
+
+            if ($file->exists())
+                $file->delete();
+        }
+    }
+
+    /**
      * Returns certificate information.
      *
-     * Format: array (ca -> certificate.ca, key -> certificate.key, crt -> certificate.crt)
+     * @param string $cert certificate name
      *
      * @return array certificate information
      */
@@ -143,7 +191,7 @@ class External_Certificates
     {
         clearos_profile(__METHOD__, __LINE__);
 
-//      Validation_Exception::is_valid($this->validate_cert($cert));
+        Validation_Exception::is_valid($this->validate_name($cert));
 
         $folder = new Folder(self::PATH_CERTIFICATES);
 
@@ -172,7 +220,7 @@ class External_Certificates
 
         $certs = array();
 
-        foreach ($this->_load_certs() as $line) {
+        foreach ($this->_load_certificates() as $line) {
             $match = array();
             if (preg_match('%^(.+)\\.([^\\.]+)$%', $line, $match)) {
                 $cert = $match[1];
@@ -191,7 +239,8 @@ class External_Certificates
     /**
      * Returns certificate details.
      *
-     * @param string $cert_name
+     * @param string $cert certficate name
+     *
      * @return string certificate details
      * @throws Engine_Exception
      */
@@ -200,17 +249,18 @@ class External_Certificates
     {
         clearos_profile(__METHOD__, __LINE__);
 
-  //      Validation_Exception::is_valid($this->validate_cert($cert));
+        Validation_Exception::is_valid($this->validate_name($cert));
     
         $shell = new Shell();
 
         $cert = escapeshellarg($cert);
 
-        $shell->execute
-            (self::COMMAND_OPENSSL,
+        $shell->execute(
+            self::COMMAND_OPENSSL,
             "x509 -in '/etc/clearos/certificate_manager.d/$cert.crt' -text -noout",
-             TRUE
+            TRUE
         );
+
         $lines = $shell->get_output();
 
         return implode("\n", $lines);
@@ -229,7 +279,7 @@ class External_Certificates
 
         $certs = array();
 
-        foreach ($this->_load_certs() as $line) {
+        foreach ($this->_load_certificates() as $line) {
             if (preg_match('%^(.+)\\.([^\\.]+)$%', $line, $match)) {
                 $cert = $match[1];
                 $certs[$cert] = $cert;
@@ -254,7 +304,7 @@ class External_Certificates
 
         $certs = array();
 
-        foreach ($this->_load_certs() as $line) {
+        foreach ($this->_load_certificates() as $line) {
             $match = array();
             if (preg_match('%^(.+)\\.([^\\.]+)$%', $line, $match)) {
                 $cert = $match[1];
@@ -277,170 +327,146 @@ class External_Certificates
         return $certs;
     }
 
-    /**
-     * Removes certificate.
-     *
-     * @param string $cert certificate name
-     * @return string
-     */
-
-    public function remove_cert($cert)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        // Validation_Exception::is_valid($this->validate_cert($cert));
-
-        // check if certificate is not used
-        exec(External_Certificates::CERT_CHECK, $out);
-        $crtRegex = "%".External_Certificates::PATH_CERTIFICATES."/".$cert.".".External_Certificates::CERT_CRT."%";
-        $nameRegex = "%ServerName[ \t]+([^ \t]+)%";
-        $name = 'default';
-        foreach ($out as $n => $line) {
-            $line=trim($line);
-            if ($line[0] == '#')
-                continue;
-            if (preg_match($nameRegex, $line, $match)) {
-                $name = $match[1];
-            } else if (preg_match($crtRegex, $line)) {
-                $err[] = sprintf(lang('certificate_manager_fail_cert_use'), $cert, $name);
-                return $err;
-            }
-        }
-
-        // it is possible to safetly remove certificate
-        $env = new Shell();
-        $env->execute(sprintf(External_Certificates::DROP_CERT, $cert), NULL, TRUE);
-        $lines = $env->get_output();
-        return implode("\n", $lines);
-    }
-
-    public static function get_cert_CA($cert)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        return External_Certificates::_get_cert_part($cert, External_Certificates::CERT_CA);
-    }
-
-    public static function get_cert_CRT($cert)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        return External_Certificates::_get_cert_part($cert, External_Certificates::CERT_CRT);
-    }
-
-    public static function get_cert_KEY($cert)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        return External_Certificates::_get_cert_part($cert, External_Certificates::CERT_KEY);
-    }
-
-    public static function update($input)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $name = $input->post('name');
-        $env = new Shell();
-        $env->execute("cp -f ".$_FILES['cert_file']['tmp_name']." ".External_Certificates::PATH_CERTIFICATES."/$name.crt", NULL, TRUE);
-        $env->execute("cp -f ".$_FILES['key_file']['tmp_name']." ".External_Certificates::PATH_CERTIFICATES."/$name.key", NULL, TRUE);
-        if ($_POST['ca_file']) {
-            $env->execute("cp -f ".$_FILES['ca_file']['tmp_name']." ".External_Certificates::PATH_CERTIFICATES."/$name.ca", NULL, TRUE);
-        }
-    }
-
     ///////////////////////////////////////////////////////////////////////////////
     // V A L I D A T I O N   M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
 
-    public function validate_cert_name($name)
+    /**
+     * Validation routine for certificate name.
+     *
+     * @param string $name certificate name
+     *
+     * @return string error message if certificate name is invalid
+     */
+
+    public function validate_name($name)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (External_Certificates::_check_cert_name($name)) {
-            if (is_null($this->certs)) {
-                $this->certs = External_Certificates::get_certs();
-            }
-            foreach ($this->certs as $cert => $k) {
-                if ($cert == $name) {
-                    return lang('certificate_manager_fail_cert_name');
-                }
-            }
-        } else {
-            return lang('certificate_manager_fail_name_invalid');
+        if (! $this->_check_cert_name($name))
+            return lang('certificate_manager_name_invalid');
+
+        $certs = $this->get_certs();
+
+        foreach ($certs as $cert => $k) {
+            if ($cert == $name)
+                return;
         }
+
+        return lang('certificate_manager_name_invalid');
     }
 
     /**
-     * Validation routine for country.
+     * Validation routine for certificate file.
      *
-     * @param string $country country
+     * @param string $certificate_file certificate file
      *
-     * @return string error message if country is invalid
+     * @return string error message if certificate file is invalid
      */
 
-    public function validate_crt_file($cert_file)
+    public function validate_certificate_file($certificate_file)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        return $this->_check_cert(External_Certificates::CHECK_CRT, $_FILES[$cert_file]['tmp_name'], 'CRT');
+        return $this->_check_file(self::TYPE_CERTIFICATE, $certificate_file);
     }
+
+    /**
+     * Validation routine for key file.
+     *
+     * @param string $key_file key file
+     *
+     * @return string error message if key file is invalid
+     */
 
     public function validate_key_file($key_file)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        return $this->_check_cert(External_Certificates::CHECK_KEY, $_FILES[$key_file]['tmp_name'], 'KEY');
+        return $this->_check_file(self::TYPE_KEY, $key_file);
     }
 
-    public function validate_ca_file($ca_file)
+    /**
+     * Validation routine for certificate file.
+     *
+     * @param string $ca_file          CA file
+     * @param string $certificate_file certificate file
+     *
+     * @return string error message if CA file is invalid
+     */
+
+    public function validate_ca_file($ca_file, $certificate_file)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        exec(External_Certificates::CHECK_CA.$_FILES[$ca_file]['tmp_name'].' '.$_FILES['cert_file']['tmp_name'], $out);
-        foreach ($out as $n => $line) {
-            if (preg_match("/^error (.*)$/", $line, $match)) {
-                return lang('certificate_manager_fail_file_CA').': '.$match[1];
-            }
-        }
+        return $this->_check_file(self::TYPE_CA, $ca_file, $certificate_file);
     }
 
     ///////////////////////////////////////////////////////////////////////////////
     // P R I V A T E   M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
 
-    private function _check_cert($cmd, $cert, $type)
+    /**
+     * Verifies given file and type.
+     *
+     * @param string $type         type of file
+     * @param string $filename     file location
+     * @param string $aux_filename auxiliary file for signature check
+     *
+     * @return string error message if file is invalid
+     */
+
+    private function _check_file($type, $filename, $aux_filename = NULL)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $out = exec($cmd.$cert." 2>&1 ");
-        if (!preg_match(External_Certificates::CHECK_RES, $out)) {
-            return lang('certificate_manager_fail_file'.$type);
-        }
-        if (!is_null($_POST['_cert_data_'])) {
-            if ($_POST['_cert_data_'] != $out) {
-                return lang('certificate_manager_fail_cert_match');
-            }
-        } else {
-            $_POST['_cert_data_'] = $out;
+        $shell = new Shell();
+        $options['validate_exit_code'] = FALSE;
+        $filename = escapeshellarg($filename);
+
+        if (!empty($aux_filename))
+            $aux_filename = escapeshellarg($aux_filename);
+
+        if ($type === self::TYPE_CERTIFICATE)
+            $params = 'x509 -noout -modulus -in ' . $filename;
+        elseif ($type === self::TYPE_KEY)
+            $params = 'rsa -noout -modulus -in ' . $filename;
+        elseif ($type === self::TYPE_CA)
+            $params = 'verify -ignore_critical -CAfile ' . $filename . ' ' . $aux_filename;
+
+        $exit_code =  $shell->execute(self::COMMAND_OPENSSL, $params, TRUE, $options);
+        $lines = $shell->get_output();
+
+        if ($type === self::TYPE_CA) {
+            if ($exit_code != 0)
+                return lang('certificate_manager_invalid_file_detected');
+        } elseif (!preg_match('/^Modulus=[A-F0-9]+$/', $lines[0])) {
+            return lang('certificate_manager_invalid_file_detected');
         }
     }
 
-    private static function _check_cert_name($name)
+    /**
+     * Verifies certificate nickname.
+     *
+     * @param string $name certificate nickname
+     *
+     * @return string error message if certificate nickname is invalid
+     */
+
+    private function _check_cert_name($name)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         return strlen($name) > 3 && preg_match("%^[a-zA-Z0-9\\-_]+(\\.[a-zA-Z0-9\\-_])*$%", $name);
     }
 
-    private static function _get_cert_part($cert, $part)
-    {
-        clearos_profile(__METHOD__, __LINE__);
+    /**
+     * Loads certificate information
+     *
+     * @return array list of certificates
+     */
 
-        if ($cert != NULL && is_array($cert))
-            return $cert[$part];
-    }
-
-    private function _load_certs()
+    private function _load_certificates()
     {
         clearos_profile(__METHOD__, __LINE__);
 

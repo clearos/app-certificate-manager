@@ -70,14 +70,14 @@ class Certificate_Manager extends ClearOS_Controller
 
         $this->lang->load('certificate_manager');
 
-        // Load views
-        //-----------
+        // Load controllers
+        //-----------------
 
-        $views = array('certificate_manager/certificate', 'certificate_manager/external');
+        $controllers = array('certificate_manager/certificate', 'certificate_manager/external');
 
         if (!($this->session->userdata('wizard')) && clearos_app_installed('user_certificates'))
-            $views[] = 'certificate_manager/policy';
+            $controllers[] = 'certificate_manager/policy';
 
-        $this->page->view_forms($views, lang('certificate_manager_app_name'));
+        $this->page->view_controllers($controllers, lang('certificate_manager_app_name'));
     }
 }
