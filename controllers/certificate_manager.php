@@ -73,8 +73,7 @@ class Certificate_Manager extends ClearOS_Controller
         // Load controllers
         //-----------------
 
-        // $controllers = array('certificate_manager/certificate', 'certificate_manager/external');
-        $controllers = array('certificate_manager/certificate');
+        $controllers = array('certificate_manager/certificate', 'certificate_manager/external');
 
         if (!($this->session->userdata('wizard')) && clearos_app_installed('user_certificates'))
             $controllers[] = 'certificate_manager/policy';

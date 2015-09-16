@@ -133,7 +133,12 @@ class External_Certificates
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        Validation_Exception::is_valid($this->validate_name($cert));
+        Validation_Exception::is_valid($this->validate_name($name));
+        Validation_Exception::is_valid($this->validate_certificate_file($cert));
+        Validation_Exception::is_valid($this->validate_key_file($key));
+
+        if (!empty($ca))
+            Validation_Exception::is_valid($this->validate_ca_file($ca, $cert));
 
         if (!empty($cert)) {
             $file = new File($cert);
@@ -345,15 +350,6 @@ class External_Certificates
 
         if (! $this->_check_cert_name($name))
             return lang('certificate_manager_name_invalid');
-
-        $certs = $this->get_certs();
-
-        foreach ($certs as $cert => $k) {
-            if ($cert == $name)
-                return;
-        }
-
-        return lang('certificate_manager_name_invalid');
     }
 
     /**
@@ -367,6 +363,9 @@ class External_Certificates
     public function validate_certificate_file($certificate_file)
     {
         clearos_profile(__METHOD__, __LINE__);
+
+        if ($certificate_file == 'cert_file')
+            return;
 
         return $this->_check_file(self::TYPE_CERTIFICATE, $certificate_file);
     }
@@ -383,6 +382,9 @@ class External_Certificates
     {
         clearos_profile(__METHOD__, __LINE__);
 
+        if ($key_file == 'key_file')
+            return;
+
         return $this->_check_file(self::TYPE_KEY, $key_file);
     }
 
@@ -398,6 +400,9 @@ class External_Certificates
     public function validate_ca_file($ca_file, $certificate_file)
     {
         clearos_profile(__METHOD__, __LINE__);
+
+        if ($ca_file == 'ca_file')
+            return;
 
         return $this->_check_file(self::TYPE_CA, $ca_file, $certificate_file);
     }

@@ -27,9 +27,9 @@ echo form_open_multipart('certificate_manager/external/add');
 echo form_header(lang('certificate_manager_add_certificate'));
 
 echo field_input('name', $name, lang('certificate_manager_name'));
-echo field_file('cert_file', $certFile, lang('certificate_manager_certificate_file'));
-echo field_file('key_file', $keyFile, lang('certificate_manager_key_file'));
-echo field_file('ca_file', $caFile, lang('certificate_manager_ca_file'));
+echo field_file('cert_file', $cert_file, lang('certificate_manager_certificate_file'));
+echo field_file('key_file', $key_file, lang('certificate_manager_key_file'));
+echo field_file('ca_file', $ca_file, lang('certificate_manager_ca_file'));
 
 echo field_button_set(
     array(
