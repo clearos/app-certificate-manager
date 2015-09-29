@@ -948,7 +948,7 @@ class SSL extends Engine
 
         $file_handle = fopen($temp_name, 'r');
         $attributes['file_contents'] = fread($file_handle, filesize($temp_name));
-        fclose($handle);
+        fclose($file_handle);
 
         $temp_file->delete();
 
