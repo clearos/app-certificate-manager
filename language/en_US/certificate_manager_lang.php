@@ -4,6 +4,7 @@
 $lang['certificate_manager_add_certificate'] = 'Add Certificate';
 $lang['certificate_manager_app_description'] = 'Security certificates are an industry standard for encrypting information sent over a network, providing authentication and enabling digital signatures.  The Certificate Manager app provides the ability to create, manage and deploy security certificates to users and apps.';
 $lang['certificate_manager_app_name'] = 'Certificate Manager';
+$lang['certificate_manager_app_not_installed'] = 'App is not installed.';
 $lang['certificate_manager_ca_file'] = 'CA File';
 $lang['certificate_manager_certificate_already_exists'] = 'Certificate already exists.';
 $lang['certificate_manager_certificate_authority'] = 'Certificate Authority';

@@ -56,12 +56,21 @@ clearos_load_language('certificate_manager');
 //--------
 
 use \clearos\apps\base\Engine as Engine;
+use \clearos\apps\base\File as File;
 use \clearos\apps\certificate_manager\External_Certificates as External_Certificates;
 use \clearos\apps\certificate_manager\SSL as SSL;
 
 clearos_load_library('base/Engine');
+clearos_load_library('base/File');
 clearos_load_library('certificate_manager/External_Certificates');
 clearos_load_library('certificate_manager/SSL');
+
+// Exceptions
+//-----------
+
+use \clearos\apps\base\Engine_Exception as Engine_Exception;
+
+clearos_load_library('base/Engine_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -170,5 +179,40 @@ class Certificate_Manager extends Engine
             $list[$basename] = 'Self-Signed - ' . $details['cert_description'];
 
         return $list;
+    }
+
+    /**
+     * Sets the certificates for the given app.
+     *
+     * @param string $app app basename
+     * @param string $cert certificate
+     *
+     * @return void
+     */
+
+    public function set_app_certificates($app, $cert = 'default')
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (!clearos_app_installed($app))
+            throw new Engine_Exception(lang('certificate_manager_app_not_installed'));
+
+        $list = array();
+
+        $ssl = new SSL();
+        $self_signed = $ssl->get_certificates(SSL::CERT_TYPE_SERVER);
+
+        foreach ($self_signed as $basename => $details) {
+            // The hard-coded sys-0-key can be cleaned up if we ever support
+            // multiple system certificates.
+            $list[$basename]['certificate-filename'] = SSL::PATH_SSL . '/' . $basename;
+            $list[$basename]['ca-filename'] = SSL::FILE_CA_CRT;
+            $list[$basename]['key-filename'] = SSL::PATH_SSL_PRIVATE . '/sys-0-key.pem';
+        }
+
+        // Just use the default for now.  Get fancy later.
+        if (!empty($list['sys-0-cert.pem'])) {
+            $source = new File($list['sys-0-cert.pem']['certificate-filename']);
+        }
     }
 }
