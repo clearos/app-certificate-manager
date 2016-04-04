@@ -30,6 +30,8 @@ echo fieldset_header(lang('base_required'));
 echo field_input('name', $name, lang('certificate_manager_name'));
 echo field_file('cert_file', $cert_file, lang('certificate_manager_certificate_file'));
 echo field_file('key_file', $key_file, lang('certificate_manager_key_file'));
+echo fieldset_header(lang('certificate_manager_usually_required'));
+echo field_file('intermediate_file', $key_file, lang('certificate_manager_intermediate_file'));
 echo fieldset_header(lang('certificate_manager_self_signed_certificate_authority'));
 echo field_file('ca_file', $ca_file, lang('certificate_manager_ca_file'));
 

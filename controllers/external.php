@@ -148,6 +148,7 @@ class External extends ClearOS_Controller
         $this->form_validation->set_policy('name', 'certificate_manager/External_Certificates', 'validate_name', TRUE);
         $this->form_validation->set_policy('cert_file', 'certificate_manager/External_Certificates', 'validate_certificate_file', TRUE);
         $this->form_validation->set_policy('key_file', 'certificate_manager/External_Certificates', 'validate_key_file', TRUE);
+        $this->form_validation->set_policy('intermediate_file', 'certificate_manager/External_Certificates', 'validate_ca_file', FALSE);
         $this->form_validation->set_policy('ca_file', 'certificate_manager/External_Certificates', 'validate_ca_file', FALSE);
         $form_ok = $this->form_validation->run();
 
@@ -160,6 +161,7 @@ class External extends ClearOS_Controller
                     $this->input->post('name'),
                     $_FILES['cert_file']['tmp_name'],
                     $_FILES['key_file']['tmp_name'],
+                    $_FILES['intermediate_file']['tmp_name'],
                     $_FILES['ca_file']['tmp_name']
                 );
 

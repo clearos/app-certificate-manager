@@ -100,6 +100,7 @@ class External_Certificates
     const TYPE_CERTIFICATE = 'certificate';
     const TYPE_KEY = 'key';
     const TYPE_CA = 'ca';
+    const TYPE_INTERMEDIATE = 'intermediate';
 
     const COMMAND_OPENSSL = '/usr/bin/openssl';
     const PATH_CERTIFICATES = '/etc/clearos/certificate_manager.d';
@@ -120,21 +121,23 @@ class External_Certificates
     /**
      * Adds an external certificate.
      *
-     * @param string $name basename of certificate
-     * @param string $cert path to certificate file
-     * @param string $key  path to key file
-     * @param string $ca   path to $ca file
+     * @param string $name        basename of certificate
+     * @param string $cert        path to certificate file
+     * @param string $key         path to key file
+     * @param string $itermediate path to intermediate file
+     * @param string $ca          path to certificate authority file
      *
      * @return void
      * @throws Engine_Exception
      */
 
-    public function add($name, $cert, $key, $ca)
+    public function add($name, $cert, $key, $intermediate, $ca)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         Validation_Exception::is_valid($this->validate_name($name));
         Validation_Exception::is_valid($this->validate_certificate_file($cert));
+        Validation_Exception::is_valid($this->validate_intermediate_file($intermediate));
         Validation_Exception::is_valid($this->validate_key_file($key));
 
         if (!empty($ca))
@@ -148,6 +151,11 @@ class External_Certificates
         if (!empty($key)) {
             $file = new File($key);
             $file->copy_to(self::PATH_CERTIFICATES . '/' . $name . '.key');
+        }
+
+        if (!empty($intermediate)) {
+            $file = new File($intermediate);
+            $file->copy_to(self::PATH_CERTIFICATES . '/' . $name . '.intermediate');
         }
 
         if (!empty($ca)) {
@@ -174,7 +182,7 @@ class External_Certificates
         // check if certificate is not used
         // FIXME: need a callback here
 
-        $extensions = array('ca', 'crt', 'key');
+        $extensions = array('ca', 'crt', 'key', 'intermediate');
 
         foreach ($extensions as $extension) {
             $file = new File(self::PATH_CERTIFICATES . '/' . $name . '.' . $extension);
@@ -322,6 +330,8 @@ class External_Certificates
                     $certs[$cert]['ca-filename'] = $filename;
                 elseif ($match[2] === 'crt')
                     $certs[$cert]['certificate-filename'] = $filename;
+                elseif ($match[2] === 'intermediate')
+                    $certs[$cert]['intermediate-filename'] = $filename;
                 elseif ($match[2] === 'key')
                     $certs[$cert]['key-filename'] = $filename;
             }
@@ -368,6 +378,24 @@ class External_Certificates
             return;
 
         return $this->_check_file(self::TYPE_CERTIFICATE, $certificate_file);
+    }
+
+    /**
+     * Validation routine for intermediate file.
+     *
+     * @param string intermediate_file intermediate file
+     *
+     * @return string error message if intermediate file is invalid
+     */
+
+    public function validate_intermediate_file($intermediate_file)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if ($key_file == 'intermediate_file')
+            return;
+
+        return $this->_check_file(self::TYPE_INTERMEDIATE, $intermediate_file);
     }
 
     /**
@@ -438,6 +466,8 @@ class External_Certificates
             $params = 'rsa -noout -modulus -in ' . $filename;
         elseif ($type === self::TYPE_CA)
             $params = 'verify -ignore_critical -CAfile ' . $filename . ' ' . $aux_filename;
+        elseif ($type === self::TYPE_INTERMEDIATE)
+            $params = 'x509 -noout -modulus -in ' . $filename;
 
         $exit_code =  $shell->execute(self::COMMAND_OPENSSL, $params, TRUE, $options);
         $lines = $shell->get_output();
@@ -481,7 +511,7 @@ class External_Certificates
         $all_files = $folder->get_listing();
 
         foreach ($all_files as $file) {
-            if (preg_match('/\.(ca|crt|key)$/', $file))
+            if (preg_match('/\.(ca|crt|key|intermediate)$/', $file))
                 $files[] = $file;
         }
 
