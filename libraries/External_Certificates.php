@@ -60,12 +60,14 @@ clearos_load_language('certificate_manager');
 use \clearos\apps\base\File as File;
 use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\base\Shell as Shell;
+use \clearos\apps\base\Webconfig as Webconfig;
 use \clearos\apps\certificate_manager\SSL as SSL;
 use \clearos\apps\certificate_manager\External_Certificates as External_Certificates;
 
 clearos_load_library('base/File');
 clearos_load_library('base/Folder');
 clearos_load_library('base/Shell');
+clearos_load_library('base/Webconfig');
 clearos_load_library('certificate_manager/SSL');
 clearos_load_library('certificate_manager/External_Certificates');
 
@@ -76,11 +78,13 @@ use \clearos\apps\base\Validation_Exception as Validation_Exception;
 use \clearos\apps\certificate_manager\Certificate_Already_Exists_Exception as Certificate_Already_Exists_Exception;
 use \clearos\apps\certificate_manager\Certificate_Not_Found_Exception as Certificate_Not_Found_Exception;
 use \clearos\apps\certificate_manager\Certificate_Mismatch_Exception as Certificate_Mismatch_Exception;
+use \clearos\apps\certificate_manager\Certificate_In_Use_Exception as Certificate_In_Use_Exception;
 
 clearos_load_library('base/Validation_Exception');
 clearos_load_library('certificate_manager/Certificate_Already_Exists_Exception');
 clearos_load_library('certificate_manager/Certificate_Not_Found_Exception');
 clearos_load_library('certificate_manager/Certificate_Mismatch_Exception');
+clearos_load_library('certificate_manager/Certificate_In_Use_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -260,6 +264,11 @@ class External_Certificates
 
         // check if certificate is not used
         // FIXME: need a callback here
+        $webconfig = new Webconfig();
+        $cert = $webconfig->get_ssl_certificate();
+        $cert_info = $this->get_cert($name);
+        if (in_array($cert, $cert_info))
+            throw new Certificate_In_Use_Exception();
 
         $extensions = array('req', 'ca', 'crt', 'key', 'intermediate');
 

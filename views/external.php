@@ -63,6 +63,7 @@ $anchors = anchor_multi(
 $items = array();
 
 foreach ($certificates as $cert => $files) {
+    $crt_exists = FALSE;
     $name = $cert;
 
     $item['title'] = $name;
