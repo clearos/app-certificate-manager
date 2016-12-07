@@ -9,7 +9,7 @@
  * @author     Roman Kosnar <kosnar@apeko.cz>
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2014 Roman Kosnar / APEKO GROUP s.r.o.
- * @copyright  2015 ClearFoundation
+ * @copyright  2015-2016 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
  * @link       http://www.clearfoundation.com/docs/developer/apps/certificate_manager/
  */
@@ -96,6 +96,27 @@ class External extends ClearOS_Controller
 
         $this->lang->load('certificate_manager');
         $this->load->library('External_Certificates');
+        $this->load->factory('groups/Group_Manager_Factory');
+
+        $this->form_validation->set_policy('key_group', 'certificate_manager/External_Certificates', 'validate_key_group', TRUE);
+        $this->form_validation->set_policy('key_permissions', 'certificate_manager/External_Certificates', 'validate_key_permissions', TRUE);
+        $form_ok = $this->form_validation->run();
+
+        // Handle form submit
+        //-------------------
+
+        if (($this->input->post('submit') && $form_ok)) {
+            try {
+                $this->external_certificates->set_key_group($cert, $this->input->post('key_group'));
+                $this->external_certificates->set_key_permissions($cert, $this->input->post('key_permissions'));
+
+                $this->page->set_status_updated();
+
+                redirect('/certificate_manager');
+            } catch (Exception $e) {
+                $data['errmsg'] = clearos_exception_message($e);
+            }
+        }
 
         // Load view data
         //---------------
@@ -103,10 +124,22 @@ class External extends ClearOS_Controller
         try {
             $data['name'] = $cert;
             $data['details'] = $this->external_certificates->get_cert_details($cert);
+            $data['certificate'] = $this->external_certificates->get_cert($cert);
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
         }
+        // Groups
+        // TODO hardcoded 31
+        $groups = $this->group_manager->get_list(1);
+
+        foreach ($groups as $name => $group)
+            $group_options[$group] = $group;
+
+        $data['key_group_options'] = $group_options;
+        $data['key_group'] = $this->external_certificates->get_key_group($cert);
+        $data['key_permissions'] = $this->external_certificates->get_key_permissions($cert);
+        $data['key_permission_options'] = $this->external_certificates->get_file_permission_options();
 
         // Load views
         //-----------
@@ -167,10 +200,9 @@ class External extends ClearOS_Controller
 
                 $this->page->set_status_added();
 
-                redirect('/certificate_manager/external');
+                redirect('/certificate_manager');
             } catch (Exception $e) {
-                $this->page->view_exception($e);
-                return;
+                $data['errmsg'] = clearos_exception_message($e);
             }
         }
 
@@ -225,4 +257,160 @@ class External extends ClearOS_Controller
             return;
         }
     }
+
+    /**
+     * Certificate_Manager create csr/key view.
+     *
+     * @return view
+     */
+
+    function create_csr()
+    {
+        // Load libraries
+        //---------------
+
+        $this->lang->load('certificate_manager');
+        $this->load->library('base/Country');
+        $this->load->library('certificate_manager/SSL');
+        $this->load->library('certificate_manager/External_Certificates');
+
+        // Set validation rules
+        //---------------------
+         
+        $this->form_validation->set_policy('name', 'certificate_manager/External_Certificates', 'validate_name', TRUE);
+        $this->form_validation->set_policy('cn', 'certificate_manager/SSL', 'validate_hostname', TRUE);
+        $this->form_validation->set_policy('key_size', 'certificate_manager/SSL', 'validate_key_size', TRUE);
+        $this->form_validation->set_policy('organization', 'certificate_manager/SSL', 'validate_organization', TRUE);
+        $this->form_validation->set_policy('unit', 'certificate_manager/SSL', 'validate_unit', TRUE);
+        $this->form_validation->set_policy('city', 'certificate_manager/SSL', 'validate_city', TRUE);
+        $this->form_validation->set_policy('region', 'certificate_manager/SSL', 'validate_region', TRUE);
+        $this->form_validation->set_policy('country', 'certificate_manager/SSL', 'validate_country', TRUE);
+        $this->form_validation->set_policy('password_protection', 'certificate_manager/SSL', 'validate_password_protection', FALSE);
+        $this->form_validation->set_policy('password', 'certificate_manager/SSL', 'validate_password', FALSE);
+        $this->form_validation->set_policy('verify', 'certificate_manager/SSL', 'validate_password', FALSE);
+
+        $form_ok = $this->form_validation->run();
+
+        // Extra Validation
+        //------------------
+
+        $password = ($this->input->post('password')) ? $this->input->post('password') : '';
+        $verify = ($this->input->post('verify')) ? $this->input->post('verify') : '';
+
+        $data['password_protection'] = $this->input->post('password_protection');
+
+        if ($this->input->post('password_protection') && $password == '') {
+            $this->form_validation->set_error('password', lang('base_password_is_invalid'));
+            $form_ok = FALSE;
+        }
+        if ($password != $verify) {
+            $this->form_validation->set_error('verify', lang('base_password_and_verify_do_not_match'));
+            $form_ok = FALSE;
+        }
+
+        // Handle form submit
+        //-------------------
+
+        if (($this->input->post('submit') && $form_ok)) {
+            try {
+                $metadata = array(
+                    'cn' => $this->input->post('cn'),
+                    'key_size' => $this->input->post('key_size'),
+                    'organization' => $this->input->post('organization'),
+                    'unit' => $this->input->post('unit'),
+                    'city' => $this->input->post('city'),
+                    'region' => $this->input->post('region'),
+                    'country' => $this->input->post('country'),
+                    'email' => $this->input->post('email'),
+                    'password' => $password
+                );
+
+                $this->external_certificates->create_csr_key_pair(
+                    $this->input->post('name'),
+                    $metadata
+                );
+
+                $this->page->set_status_added();
+                redirect('/certificate_manager');
+            } catch (Exception $e) {
+                $this->page->view_exception($e);
+                return;
+            }
+        }
+
+        // Load view data
+        //---------------
+
+        try {
+            $data['organization'] = $this->ssl->get_default_organization();
+            $data['unit'] = $this->ssl->get_default_unit();
+            $data['city'] = $this->ssl->get_default_city();
+            $data['region'] = $this->ssl->get_default_region();
+            $data['country'] = $this->ssl->get_default_country();
+            // Options for dropdowns
+            $data['key_sizes'] = $this->external_certificates->get_key_size_options();
+            $data['countries'] = $this->country->get_list();
+        } catch (Exception $e) {
+            $this->page->view_exception($e);
+            return;
+        }
+
+        // Load views
+        //-----------
+
+        $this->page->view_form('certificate_manager/create_csr', $data, lang('certificate_manager_create_csr'));
+    }
+
+    /**
+     * Import CRT and Intermediate to CSR and key.
+     *
+     * @return view
+     */
+
+    function import_crt($name)
+    {
+        // Load libraries
+        //---------------
+
+        $this->lang->load('certificate_manager');
+        $this->load->library('External_Certificates');
+
+        // Set validation rules
+        //---------------------
+
+        $file = $_FILES['cert_file'];
+        if ($file && $file['name'])
+            $_POST['cert_file'] = 'cert_file';
+
+        $this->form_validation->set_policy('name', 'certificate_manager/External_Certificates', 'validate_name', TRUE);
+        $this->form_validation->set_policy('cert_file', 'certificate_manager/External_Certificates', 'validate_certificate_file', TRUE);
+        $this->form_validation->set_policy('intermediate_file', 'certificate_manager/External_Certificates', 'validate_ca_file', FALSE);
+        $form_ok = $this->form_validation->run();
+
+        // Handle form submit
+        //-------------------
+
+        if (($this->input->post('submit') && $form_ok)) {
+            try {
+                $this->external_certificates->import_signed_crt(
+                    $this->input->post('name'),
+                    $_FILES['cert_file']['tmp_name'],
+                    $_FILES['intermediate_file']['tmp_name']
+                );
+
+                $this->page->set_status_added();
+
+                redirect('/certificate_manager');
+            } catch (Exception $e) {
+                $data['errmsg'] = clearos_exception_message($e);
+            }
+        }
+
+        // Load the view
+        //--------------
+        $data['name'] = $name;
+
+        $this->page->view_form('external_import_crt', $data, lang('certificate_manager_import_signed_crt'));
+    }
+
 }

@@ -60,19 +60,31 @@ clearos_load_language('certificate_manager');
 use \clearos\apps\base\File as File;
 use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\base\Shell as Shell;
+use \clearos\apps\base\Webconfig as Webconfig;
+use \clearos\apps\certificate_manager\SSL as SSL;
 use \clearos\apps\certificate_manager\External_Certificates as External_Certificates;
 
 clearos_load_library('base/File');
 clearos_load_library('base/Folder');
 clearos_load_library('base/Shell');
+clearos_load_library('base/Webconfig');
+clearos_load_library('certificate_manager/SSL');
 clearos_load_library('certificate_manager/External_Certificates');
 
 // Exceptions
 //-----------
 
 use \clearos\apps\base\Validation_Exception as Validation_Exception;
+use \clearos\apps\certificate_manager\Certificate_Already_Exists_Exception as Certificate_Already_Exists_Exception;
+use \clearos\apps\certificate_manager\Certificate_Not_Found_Exception as Certificate_Not_Found_Exception;
+use \clearos\apps\certificate_manager\Certificate_Mismatch_Exception as Certificate_Mismatch_Exception;
+use \clearos\apps\certificate_manager\Certificate_In_Use_Exception as Certificate_In_Use_Exception;
 
 clearos_load_library('base/Validation_Exception');
+clearos_load_library('certificate_manager/Certificate_Already_Exists_Exception');
+clearos_load_library('certificate_manager/Certificate_Not_Found_Exception');
+clearos_load_library('certificate_manager/Certificate_Mismatch_Exception');
+clearos_load_library('certificate_manager/Certificate_In_Use_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -121,11 +133,11 @@ class External_Certificates
     /**
      * Adds an external certificate.
      *
-     * @param string $name        basename of certificate
-     * @param string $cert        path to certificate file
-     * @param string $key         path to key file
-     * @param string $itermediate path to intermediate file
-     * @param string $ca          path to certificate authority file
+     * @param string $name         basename of certificate
+     * @param string $cert         path to certificate file
+     * @param string $key          path to key file
+     * @param string $intermediate path to intermediate file
+     * @param string $ca           path to certificate authority file
      *
      * @return void
      * @throws Engine_Exception
@@ -137,7 +149,8 @@ class External_Certificates
 
         Validation_Exception::is_valid($this->validate_name($name));
         Validation_Exception::is_valid($this->validate_certificate_file($cert));
-        Validation_Exception::is_valid($this->validate_intermediate_file($intermediate));
+        if (!empty($intermediate))
+            Validation_Exception::is_valid($this->validate_intermediate_file($intermediate));
         Validation_Exception::is_valid($this->validate_key_file($key));
 
         if (!empty($ca))
@@ -145,23 +158,93 @@ class External_Certificates
 
         if (!empty($cert)) {
             $file = new File($cert);
-            $file->copy_to(self::PATH_CERTIFICATES . '/' . $name . '.crt');
+            $file->move_to(self::PATH_CERTIFICATES . '/' . $name . '.crt');
         }
 
         if (!empty($key)) {
             $file = new File($key);
-            $file->copy_to(self::PATH_CERTIFICATES . '/' . $name . '.key');
+            $file->move_to(self::PATH_CERTIFICATES . '/' . $name . '.key');
+            $file->chmod(600);
+            $file->chown('root', 'root');
         }
 
         if (!empty($intermediate)) {
             $file = new File($intermediate);
-            $file->copy_to(self::PATH_CERTIFICATES . '/' . $name . '.intermediate');
+            $file->move_to(self::PATH_CERTIFICATES . '/' . $name . '.intermediate');
         }
 
         if (!empty($ca)) {
             $file = new File($ca);
-            $file->copy_to(self::PATH_CERTIFICATES . '/' . $name . '.ca');
+            $file->move_to(self::PATH_CERTIFICATES . '/' . $name . '.ca');
         }
+    }
+
+    /**
+     * Adds an external certificate.
+     *
+     * @param string $name         basename of certificate
+     * @param string $cert         path to certificate file
+     * @param string $intermediate path to intermediate file
+     *
+     * @return void
+     * @throws Certificate_Mismatch_Exception, Engine_Exception
+     */
+
+    public function import_signed_crt($name, $cert, $intermediate)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        Validation_Exception::is_valid($this->validate_name($name));
+        Validation_Exception::is_valid($this->validate_certificate_file($cert));
+        if (!empty($intermediate))
+            Validation_Exception::is_valid($this->validate_intermediate_file($intermediate));
+
+        $this->check_crt_key_match($cert, self::PATH_CERTIFICATES . "/". $name . ".key");
+
+        if (!empty($cert)) {
+            $file = new File($cert);
+            $file->move_to(self::PATH_CERTIFICATES . '/' . $name . '.crt');
+        }
+
+        if (!empty($intermediate)) {
+            $file = new File($intermediate);
+            $file->move_to(self::PATH_CERTIFICATES . '/' . $name . '.intermediate');
+        }
+    }
+
+    /**
+     * Gets a unique hash from certificate type for comparison.
+     *
+     * @param string $type     type
+     * @param string $filename file
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    public function check_crt_key_match($crt, $key)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+        $shell = new Shell();
+
+        $types = array('crt', 'key');
+        foreach ($types as $type) {
+            if ($type == 'crt')
+                $args = 'x509 -noout -modulus -in ' . $crt . ' | openssl md5';
+            else
+                $args = 'rsa -noout -modulus -in ' . $key . ' | openssl md5';
+            $exitcode = $shell->execute(self::COMMAND_OPENSSL, $args, TRUE);
+
+            if ($exitcode != 0) {
+                $errstr = $shell->get_last_output_line();
+                $output = $shell->get_output();
+                throw new Engine_Exception($errstr);
+            }
+            $mod[$type] = $shell->get_last_output_line();
+        }
+
+        if ($mod['crt'] != $mod['key'])
+            throw new Certificate_Mismatch_Exception();
     }
 
     /**
@@ -181,8 +264,13 @@ class External_Certificates
 
         // check if certificate is not used
         // FIXME: need a callback here
+        $webconfig = new Webconfig();
+        $cert = $webconfig->get_ssl_certificate();
+        $cert_info = $this->get_cert($name);
+        if (in_array($cert, $cert_info))
+            throw new Certificate_In_Use_Exception();
 
-        $extensions = array('ca', 'crt', 'key', 'intermediate');
+        $extensions = array('req', 'ca', 'crt', 'key', 'intermediate');
 
         foreach ($extensions as $extension) {
             $file = new File(self::PATH_CERTIFICATES . '/' . $name . '.' . $extension);
@@ -190,6 +278,78 @@ class External_Certificates
             if ($file->exists())
                 $file->delete();
         }
+    }
+
+    /**
+     * Get group ownership on key.
+     *
+     * @param string $name name
+     *
+     * @return array
+     * @throws Engine_Exception
+     */
+
+    public function get_key_group($name)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $file = new File(self::PATH_CERTIFICATES . '/' . $name . '.key', TRUE);
+        $ownership = $file->get_ownership();
+        return $ownership['group'];
+    }
+
+    /**
+     * Set group ownership on key.
+     *
+     * @param string $name  name
+     * @param string $group group name
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    public function set_key_group($name, $group)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $file = new File(self::PATH_CERTIFICATES . '/' . $name . '.key', TRUE);
+        $ownership = $file->get_ownership();
+        $file->chown($ownership['owner'], $group);;
+    }
+
+    /**
+     * Get permissions on key.
+     *
+     * @param string $name name
+     *
+     * @return string
+     * @throws Engine_Exception
+     */
+
+    public function get_key_permissions($name)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $file = new File(self::PATH_CERTIFICATES . '/' . $name . '.key');
+        return $file->get_permissions();
+    }
+
+    /**
+     * Set permissions on key.
+     *
+     * @param string $name name
+     * @param int    $permissions permissions
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    public function set_key_permissions($name, $permissions)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $file = new File(self::PATH_CERTIFICATES . '/' . $name . '.key');
+        $file->chmod($permissions);
     }
 
     /**
@@ -214,7 +374,7 @@ class External_Certificates
         foreach ($all_files as $file) {
             $match = array();
             if (preg_match("%^($cert\\.([^\\.]+))$%", $file, $match))
-                $certs[$match[2]] = $match[1];
+                $certs[$match[2]] = self::PATH_CERTIFICATES . "/" . $match[1];
         }
 
         return $certs;
@@ -240,7 +400,7 @@ class External_Certificates
                 if (!array_key_exists($cert, $certs))
                     $certs[$cert] = array();
 
-                $certs[$cert][$match[2]] = 1;
+                $certs[$cert][$match[2]] = self::PATH_CERTIFICATES . "/" . $line;
             }
         }
 
@@ -255,7 +415,7 @@ class External_Certificates
      * @param string $cert certficate name
      *
      * @return string certificate details
-     * @throws Engine_Exception
+     * @throws Engine_Exception, Certificate_Not_Found_Exception
      */
 
     public function get_cert_details($cert)
@@ -266,13 +426,29 @@ class External_Certificates
     
         $shell = new Shell();
 
-        $cert = escapeshellarg($cert);
+        // First, check if cert exists...if not, check for CSR
+        $file = new File(self::PATH_CERTIFICATES . "/" . $cert . ".crt");
+        if ($file->exists()) {
+            $cert = escapeshellarg($cert);
 
-        $shell->execute(
-            self::COMMAND_OPENSSL,
-            "x509 -in '/etc/clearos/certificate_manager.d/$cert.crt' -text -noout",
-            TRUE
-        );
+            $shell->execute(
+                self::COMMAND_OPENSSL,
+                "x509 -in '" . self::PATH_CERTIFICATES . "/$cert.crt' -text -noout",
+                TRUE
+            );
+        } else {
+            // Check CSR
+            $file = new File(self::PATH_CERTIFICATES . "/" . $cert . ".req");
+            $cert = escapeshellarg($cert);
+            if (!$file->exists())
+                throw new Certificate_Not_Found_Exception();
+                
+            $shell->execute(
+                self::COMMAND_OPENSSL,
+                "req -in '" . self::PATH_CERTIFICATES . "/$cert.req' -text -noout",
+                TRUE
+            );
+        }
 
         $lines = $shell->get_output();
 
@@ -340,6 +516,99 @@ class External_Certificates
         ksort($certs);
 
         return $certs;
+    }
+
+    /**
+     * Returns list of key size options.
+     *
+     * @return array list of key size options
+     * @throws Engine_Exception
+     */
+
+    public function get_key_size_options()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+        $sizes = array(
+            2048 => "2048 (" . lang('certificate_manager_recommended') . ")",
+            4096 => "4096",
+        );
+        return $sizes;
+    }
+
+    /**
+     * Returns a list of file permission options.
+     *
+     * @return array
+     */
+
+    function get_file_permission_options()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        // Umask is inverted.
+        $options = array(
+            600 => "rw----",
+            640 => "rwr---",
+            644 => "rwr-r-",
+            660 => "rwrw--",
+            664 => "rwrwr-"
+        );
+
+        return $options;
+    }
+
+    /**
+     * Creates a new SSL certificate request + key pair.
+     *
+     * @param string $name     simple name for the certificate which will be used as a filename
+     * @param array  $metadata certificate metadata
+     *
+     * @throws Engine_Exception, Certificate_Already_Exists_Exception
+     */
+
+    public function create_csr_key_pair($name, $metadata)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $file = new File(self::PATH_CERTIFICATES . "/$name.key", TRUE);
+        if ($file->exists())
+            throw new Certificate_Already_Exists_Exception();
+
+        Validation_Exception::is_valid($this->validate_name($name));
+
+        // Create private key
+        $shell = new Shell();
+
+        $password = '';
+        if ($metadata['password'] != '')
+            $password = '-passout pass:' . $metadata['password']; 
+
+        $exitcode = $shell->execute(
+            self::COMMAND_OPENSSL,
+            "genrsa -out '" . self::PATH_CERTIFICATES . "/$name.key' $password " . $metadata['key_size'],
+            TRUE
+        );
+
+        if ($exitcode != 0) {
+            $errstr = $shell->get_last_output_line();
+            $output = $shell->get_output();
+            throw new Engine_Exception($errstr);
+        }
+
+        $file->chmod(600);
+        $file->chown('root', 'root');
+
+        $ssl = new SSL();
+        $ssl->set_rsa_key_size($metadata['key_size']);
+        $ssl->set_md(SSL::DEFAULT_MD);
+        $ssl->set_common_name($metadata['cn']);
+        $ssl->set_organization_name($metadata['organization']);
+        $ssl->set_organizational_unit($metadata['unit']);
+        $ssl->set_email_address($metadata['email']);
+        $ssl->set_locality($metadata['city']);
+        $ssl->set_state_or_province($metadata['region']);
+        $ssl->set_country_code($metadata['country']);
+        $ssl->create_csr_for_external($name, $metadata['cn']);
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -435,6 +704,38 @@ class External_Certificates
         return $this->_check_file(self::TYPE_CA, $ca_file, $certificate_file);
     }
 
+    /**
+     * Validation routine for group ownership of key.
+     *
+     * @param string $group group
+     *
+     * @return string error message if group is invalid
+     */
+
+    public function validate_key_group($group)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        // TODO
+        return;
+    }
+
+    /**
+     * Validation routine for permissions of key.
+     *
+     * @param int $permissions permissions
+     *
+     * @return string error message if permissions is invalid
+     */
+
+    public function validate_key_permissions($permissions)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        // TODO
+        return;
+    }
+
     ///////////////////////////////////////////////////////////////////////////////
     // P R I V A T E   M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
@@ -511,7 +812,7 @@ class External_Certificates
         $all_files = $folder->get_listing();
 
         foreach ($all_files as $file) {
-            if (preg_match('/\.(ca|crt|key|intermediate)$/', $file))
+            if (preg_match('/\.(req|ca|crt|key|intermediate)$/', $file))
                 $files[] = $file;
         }
 

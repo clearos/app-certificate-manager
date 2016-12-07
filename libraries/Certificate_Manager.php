@@ -164,9 +164,8 @@ class Certificate_Manager extends Engine
         $external = $external_certificates->get_server_certificates();
 
         foreach ($external as $basename => $details) {
-            // FIXME: translate x2
-            $nickname = ($basename === '_default_') ? 'Default' : $basename;
-            $list[$basename] = 'External - ' . $nickname;
+            $nickname = ($basename === '_default_') ? lang('base_default') : $basename;
+            $list[$basename] = lang('certificate_manager_external') . ' - ' . $nickname;
         }
 
         // Self-signed 
@@ -176,7 +175,7 @@ class Certificate_Manager extends Engine
         $self_signed = $ssl->get_certificates(SSL::CERT_TYPE_SERVER);
 
         foreach ($self_signed as $basename => $details)
-            $list[$basename] = 'Self-Signed - ' . $details['cert_description'];
+            $list[$basename] = lang('certificate_manager_self_signed') . ' - ' . $details['cert_description'];
 
         return $list;
     }

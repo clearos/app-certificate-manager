@@ -20,7 +20,7 @@ Summary: Certificate Manager - Core
 License: LGPLv3
 Group: ClearOS/Libraries
 Requires: app-base-core
-Requires: app-base-core >= 1:1.4.15
+Requires: app-base-core >= 1:2.3.0
 Requires: app-events-core >= 1:1.6.0
 Requires: app-network-core
 Requires: app-organization-core
