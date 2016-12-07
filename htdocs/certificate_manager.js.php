@@ -71,6 +71,13 @@ $(document).ready(function() {
 
     if ($(location).attr('href').match('browser\/warning$') != null)
         checkWebconfig();
+
+    $("#password_protection").on('change', function() {
+        if ($(this).val() == 1)
+            $('.theme-field-password').removeClass('theme-hidden');
+        else
+            $('.theme-field-password').addClass('theme-hidden');
+    });
 });
 
 

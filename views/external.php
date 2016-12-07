@@ -47,9 +47,14 @@ $headers = array(
     lang('certificate_manager_files')
 );
 
-$anchors = array(
-    anchor_custom('/app/certificate_manager/external/add', lang('base_add'))
+$anchors = anchor_multi(
+    array (
+        'certificate_manager/external/add' => lang('certificate_manager_import'),
+        'certificate_manager/external/create_csr' => lang('certificate_manager_create_csr'),
+    ),
+    lang('base_add')
 );
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // Items
@@ -58,21 +63,27 @@ $anchors = array(
 $items = array();
 
 foreach ($certificates as $cert => $files) {
-    $buttons = array();
-    $buttons[] = anchor_view('/app/certificate_manager/external/view/' . $cert);
-
-    if (strcmp($cert, '_default_') != 0)
-        $buttons[] = anchor_custom('/app/certificate_manager/external/delete/' . $cert, lang('base_delete'));
-
     $name = $cert;
 
     $item['title'] = $name;
     $item['action'] = NULL;
-    $item['anchors'] = button_set($buttons);
     $parts = array();
-    foreach ($files as $file => $s)
+    foreach ($files as $file => $s) {
         $parts[] = $file;
+        if ($file == 'crt')
+            $crt_exists = TRUE;
+    }
 
+    $buttons = array();
+    $buttons[] = anchor_view('/app/certificate_manager/external/view/' . $cert);
+
+    if (!$crt_exists)
+        $buttons[] = anchor_custom('/app/certificate_manager/external/import_crt/' . $cert, lang('certificate_manager_import_crt'));
+
+    if (strcmp($cert, '_default_') != 0)
+        $buttons[] = anchor_custom('/app/certificate_manager/external/delete/' . $cert, lang('base_delete'));
+
+    $item['anchors'] = button_set($buttons);
     sort($parts);
     $item['details'] = array($name, implode(", ", $parts));
     $items[] = $item;

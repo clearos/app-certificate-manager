@@ -73,6 +73,7 @@ use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\base\Shell as Shell;
 use \clearos\apps\certificate_manager\Certificate_Defaults as Certificate_Defaults;
 use \clearos\apps\certificate_manager\SSL as SSL;
+use \clearos\apps\certificate_manager\External_Certificates as External_Certificates;
 use \clearos\apps\mode\Mode_Engine as Mode_Engine;
 use \clearos\apps\mode\Mode_Factory as Mode_Factory;
 use \clearos\apps\network\Domain as Domain;
@@ -84,6 +85,7 @@ clearos_load_library('base/File');
 clearos_load_library('base/Folder');
 clearos_load_library('base/Shell');
 clearos_load_library('certificate_manager/Certificate_Defaults');
+clearos_load_library('certificate_manager/External_Certificates');
 clearos_load_library('certificate_manager/SSL');
 clearos_load_library('mode/Mode_Engine');
 clearos_load_library('mode/Mode_Factory');
@@ -328,6 +330,64 @@ class SSL extends Engine
         $file->chown('root', 'root');
 
         return $prefix . '-req.pem';
+    }
+
+    /**
+     * Creates a new SSL certificate request for external certificates.
+     *
+     * @param string $name        a name that will be used as a filename
+     * @param array  $common_name the cn
+     *
+     * @throws Engine_Exception
+     */
+
+    public function create_csr_for_external($name, $common_name)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! $this->is_loaded)
+            $this->configuration = $this->_load_configuration();
+
+        // Set SSL directory prefix
+        // Sanitize/validate other configuration parameters before expansion.
+        $req_dname = $this->configuration['req']['distinguished_name'];
+
+        $this->configuration[$req_dname]['commonName'] = $common_name;
+        $this->configuration['global']['dir'] = External_Certificates::PATH_CERTIFICATES;
+        $this->configuration['req']['encrypt_key'] = 'no';
+        $this->configuration['req']['default_keyfile'] = External_Certificates::PATH_CERTIFICATES. '/' . $name . '.key';
+
+        if (!isset($this->configuration['req']['distinguished_name']))
+            $this->configuration['req']['distinguished_name'] = 'req_distinguished_name';
+
+        // Expand configuration variables
+        $this->_expand_configuration();
+
+        // Save working configuration to a temporary file.  This is to be read
+        // later by the OpenSSL binary to generate a new certificate request.
+        $config = tempnam('/var/tmp', 'openssl');
+        $this->_save_configuration($config);
+
+        // Construct OpenSSL arguments
+        $args = sprintf(
+            "req -new -key %s -out %s -batch -config %s",
+            External_Certificates::PATH_CERTIFICATES . '/' . $name . '.key',
+            External_Certificates::PATH_CERTIFICATES . '/' . $name . '.req',
+            $config
+        );
+
+        // Execute OpenSSL
+        $shell = new Shell();
+        $exitcode = $shell->execute(SSL::COMMAND_OPENSSL, $args, TRUE);
+
+        if ($exitcode != 0) {
+            $errstr = $shell->get_last_output_line();
+            $output = $shell->get_output();
+            throw new Engine_Exception($errstr);
+        }
+
+        $configfile = new File($config, TRUE);
+        $configfile->delete();
     }
 
     /**
@@ -2158,6 +2218,22 @@ class SSL extends Engine
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
+     * Validation routine for key size.
+     *
+     * @param int $key_size key size
+     *
+     * @return string error message if key size is invalid
+     */
+
+    public function validate_key_size($key_size)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (!is_int((int)$key_size) || $key_size < 1024)
+            return lang('certificate_manager_key_size_invalid');
+    }
+
+    /**
      * Validation routine for city.
      *
      * @param string $city city
@@ -2313,6 +2389,19 @@ class SSL extends Engine
     }
 
     /**
+     * Validation routine for certificate password.
+     *
+     * @param string $password certificate password
+     *
+     * @return string error message if password/verify are invalid
+     */
+
+    public function validate_password($password)
+    {
+        return $this->validate_password_and_verify($password, $password);
+    }
+
+    /**
      * Validation routine for certificate password and verify.
      *
      * @param string $password certificate password
@@ -2331,6 +2420,19 @@ class SSL extends Engine
         // Must begin w/a letter/number
         if (!preg_match('/^([a-zA-Z0-9]+[0-9a-zA-Z\.\-\!\@\#\$\%\^\&\*\(\)_]*)$/', $password))
             return lang('certificate_manager_password_must_begin_with_letter_or_number');
+    }
+
+    /**
+     * Validation routine for password protection
+     *
+     * @param boolean $password_protection password protection
+     *
+     * @return string error message if password_protection is invalid
+     */
+
+    public function validate_password_protection($password_protection)
+    {
+        clearos_profile(__METHOD__, __LINE__);
     }
 
     /**
