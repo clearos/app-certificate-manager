@@ -28,6 +28,7 @@ $lang['certificate_manager_configure_app_help'] = 'Before you can start using th
 $lang['certificate_manager_configure_security_certificates'] = 'Configure Security Certificates';
 $lang['certificate_manager_create_certificate'] = 'Create Certificate';
 $lang['certificate_manager_default_certificate'] = 'Default Certificate';
+$lang['certificate_manager_digital_certificate'] = 'Digital Certificate';
 $lang['certificate_manager_email'] = 'E-mail';
 $lang['certificate_manager_email_invalid'] = 'E-mail is invalid.';
 $lang['certificate_manager_password_protection'] = 'Password Protection';
