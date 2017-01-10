@@ -47,14 +47,19 @@ $headers = array(
     lang('certificate_manager_files')
 );
 
-$anchors = anchor_multi(
-    array (
-        'certificate_manager/external/add' => lang('certificate_manager_import'),
-        'certificate_manager/external/create_csr' => lang('certificate_manager_create_csr'),
-    ),
-    lang('base_add')
-);
-
+if ($accounts_uninitialized) {
+    $anchors = array(
+        anchor_custom('/app/certificate_manager/external/add', lang('base_add'))
+    );
+} else {
+    $anchors = anchor_multi(
+        array (
+            'certificate_manager/external/add' => lang('certificate_manager_import'),
+            'certificate_manager/external/create_csr' => lang('certificate_manager_create_csr'),
+        ),
+       lang('base_add')
+    );
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Items

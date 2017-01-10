@@ -63,12 +63,14 @@ class External extends ClearOS_Controller
         //---------------
 
         $this->lang->load('certificate_manager');
+        $this->load->module('accounts/status');
         $this->load->library('External_Certificates');
 
         // Load view data
         //---------------
 
         try {
+            $data['accounts_uninitialized'] = $this->status->unhappy();
             $data['certificates'] = $this->external_certificates->get_certs();
         } catch (Exception $e) {
             $this->page->view_exception($e);
