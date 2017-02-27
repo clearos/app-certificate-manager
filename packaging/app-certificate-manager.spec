@@ -1,7 +1,7 @@
 
 Name: app-certificate-manager
 Epoch: 1
-Version: 2.3.3
+Version: 2.3.20
 Release: 1%{dist}
 Summary: Certificate Manager
 License: GPLv3
@@ -87,6 +87,7 @@ exit 0
 %files core
 %defattr(-,root,root)
 %exclude /usr/clearos/apps/certificate_manager/packaging
+%exclude /usr/clearos/apps/certificate_manager/unify.json
 %dir /usr/clearos/apps/certificate_manager
 %dir /etc/clearos/certificate_manager.d
 %dir /var/clearos/certificate_manager
