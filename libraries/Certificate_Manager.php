@@ -179,4 +179,20 @@ class Certificate_Manager extends Engine
 
         return $list;
     }
+
+    /**
+     * Registers certificate use to state file.
+     *
+     * @param array $share share information
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    public function register($certs, $basename)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        print_r($certs);
+    }
 }
