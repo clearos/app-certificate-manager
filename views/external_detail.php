@@ -28,29 +28,6 @@ if ($errmsg)
 // Form
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('certificate_manager/external/view/' . $name);
-echo form_header(lang('certificate_manager_file_information'));
-
-echo field_input('name', $name, lang('certificate_manager_name'), TRUE);
-echo field_input('key', $certificate['key'], lang('certificate_manager_key_file'), TRUE);
-echo field_input('crt', $certificate['crt'], lang('certificate_manager_certificate_file'), TRUE);
-echo field_input('intermediate', $certificate['intermediate'], lang('certificate_manager_intermediate_file'), TRUE);
-echo field_dropdown('key_group', $key_group_options, $key_group, lang('certificate_manager_file_group'), FALSE);
-echo field_dropdown('key_permissions', $key_permission_options, $key_permissions, lang('certificate_manager_key_file_permissions'), FALSE);
-
-echo field_button_set(
-    array(
-        form_submit_update('submit'),
-        anchor_cancel('/app/certificate_manager')
-    )
-);
-
-echo form_footer();
-echo form_close();
-///////////////////////////////////////////////////////////////////////////////
-// Form
-///////////////////////////////////////////////////////////////////////////////
-
 $options['anchors'] = anchor_custom(
     '/app/certificate_manager',
     lang('base_return_to_summary')

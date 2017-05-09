@@ -98,27 +98,6 @@ class External extends ClearOS_Controller
 
         $this->lang->load('certificate_manager');
         $this->load->library('External_Certificates');
-        $this->load->factory('groups/Group_Manager_Factory');
-
-        $this->form_validation->set_policy('key_group', 'certificate_manager/External_Certificates', 'validate_key_group', TRUE);
-        $this->form_validation->set_policy('key_permissions', 'certificate_manager/External_Certificates', 'validate_key_permissions', TRUE);
-        $form_ok = $this->form_validation->run();
-
-        // Handle form submit
-        //-------------------
-
-        if (($this->input->post('submit') && $form_ok)) {
-            try {
-                $this->external_certificates->set_key_group($cert, $this->input->post('key_group'));
-                $this->external_certificates->set_key_permissions($cert, $this->input->post('key_permissions'));
-
-                $this->page->set_status_updated();
-
-                redirect('/certificate_manager');
-            } catch (Exception $e) {
-                $data['errmsg'] = clearos_exception_message($e);
-            }
-        }
 
         // Load view data
         //---------------
@@ -131,17 +110,6 @@ class External extends ClearOS_Controller
             $this->page->view_exception($e);
             return;
         }
-        // Groups
-        // TODO hardcoded 31
-        $groups = $this->group_manager->get_list(1);
-
-        foreach ($groups as $name => $group)
-            $group_options[$group] = $group;
-
-        $data['key_group_options'] = $group_options;
-        $data['key_group'] = $this->external_certificates->get_key_group($cert);
-        $data['key_permissions'] = $this->external_certificates->get_key_permissions($cert);
-        $data['key_permission_options'] = $this->external_certificates->get_file_permission_options();
 
         // Load views
         //-----------
