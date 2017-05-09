@@ -5,6 +5,23 @@
 
 /usr/sbin/addsudo /usr/bin/openssl app-certificate-manager-core
 
+# ssl-cert group handling
+#------------------------
+
+CHECK=`/usr/bin/getent group ssl-cert`
+if [ -z "$CHECK" ]; then
+    logger -p local6.notice -t installer "app-certificate-manager - adding ssl-cert group"
+    /usr/sbin/groupadd -r ssl-cert 
+fi
+
+# Only update permissions once
+if [ ! -e /var/clearos/certificate_manager/permissions_updated ]; then
+    find /etc/clearos/certificate_manager.d -not -group ssl-cert -exec chgrp ssl-cert  '{}' \;
+    find /etc/clearos/certificate_manager.d -not -user root -exec chown root  '{}' \;
+    find /etc/clearos/certificate_manager.d -type f -exec chmod 0640  '{}' \;
+    touch /var/clearos/certificate_manager/permissions_updated
+fi
+
 # Generate temporary system certificates
 #---------------------------------------
 #
@@ -33,10 +50,10 @@ if ( [ ! -s "$KEY" ] || [ ! -s $CRT ] ); then
     sed -e "s/^CN .*/CN = $HOSTNAME/" $SSLCONF > /var/tmp/openssl.cnf.$$
 
     # Generate keys
-    logger -p local6.notice -t installer "app-certificate-manager-core - creating bootstrap key"
+    logger -p local6.notice -t installer "app-certificate-manager - creating bootstrap key"
     /usr/bin/openssl genrsa -out $KEY 2048 2>/dev/null
 
-    logger -p local6.notice -t installer "app-certificate-manager-core - creating bootstrap certificate"
+    logger -p local6.notice -t installer "app-certificate-manager - creating bootstrap certificate"
     /usr/bin/openssl req -new -key $KEY -x509 -out $CRT -config /var/tmp/openssl.cnf.$$ \
             -days 3000 -set_serial `date "+%s"` 2>/dev/null
 

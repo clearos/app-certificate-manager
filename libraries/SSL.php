@@ -7,7 +7,7 @@
  * @package    certificate-manager
  * @subpackage libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
- * @copyright  2006-2012 ClearFoundation
+ * @copyright  2006-2017 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
  * @link       http://www.clearfoundation.com/docs/developer/apps/certificate_manager/
  */
@@ -130,7 +130,7 @@ clearos_load_library('certificate_manager/Certificate_Not_Found_Exception');
  * @package    certificate-manager
  * @subpackage libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
- * @copyright  2006-2011 ClearFoundation
+ * @copyright  2006-2017 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
  * @link       http://www.clearfoundation.com/docs/developer/apps/certificate_manager/
  */
@@ -191,6 +191,9 @@ class SSL extends Engine
     const DEFAULT_KEY_SIZE = 2048;
     const DEFAULT_DH_KEY_SIZE = 2048;
     const DEFAULT_MD = 'sha256';
+
+    // File/group ownership
+    const CERT_GROUP = 'ssl-cert';
 
     // Certificate types and prefixes
     const CERT_TYPE_CA = 'ca';
@@ -326,8 +329,8 @@ class SSL extends Engine
 
         // Change file attributes
         $file = new File(self::PATH_SSL_PRIVATE . '/' . $prefix . '-key.pem', TRUE);
-        $file->chmod(600);
-        $file->chown('root', 'root');
+        $file->chmod('0640');
+        $file->chown('root', self::CERT_GROUP);
 
         return $prefix . '-req.pem';
     }
@@ -460,8 +463,8 @@ class SSL extends Engine
 
         // Change file attributes
         $file = new File(self::FILE_CA_KEY, TRUE);
-        $file->chmod(600);
-        $file->chown('root', 'root');
+        $file->chmod('0640');
+        $file->chown('root', self::CERT_GROUP);
     }
 
     /**
@@ -557,8 +560,8 @@ class SSL extends Engine
 
         try {
             $file = new File($tmp_file);
-            $file->chown("webconfig", "webconfig");
-            $file->chmod("0600");
+            $file->chmod('0640');
+            $file->chown('root', self::CERT_GROUP);
         } catch (Engine_Exception $e) {
             try {
                 $tempfile = new File($tmp_file, TRUE);
@@ -807,8 +810,8 @@ class SSL extends Engine
 
         try {
             $file = new File($passout);
-            $file->chown("root", "root");
-            $file->chmod("0600");
+            $file->chmod('0640');
+            $file->chown('root', self::CERT_GROUP);
             $file->add_lines($password);
         } catch (Engine_Exception $e) {
             try {
@@ -999,8 +1002,8 @@ class SSL extends Engine
         $file->copy_to($temp_name);
 
         $temp_file = new File($temp_name);
-        $temp_file->chown('root', 'webconfig');
-        $temp_file->chmod('0660');
+        $temp_file->chmod('0640');
+        $temp_file->chown('root', self::CERT_GROUP);
 
         $attributes['file_size'] = filesize($temp_name);
 
@@ -1508,7 +1511,7 @@ class SSL extends Engine
         if ($cert_file->exists())
             $cert_file->delete();
 
-        $cert_file->create('root', 'root', '0600');
+        $cert_file->create('root', self::CERT_GROUP, '0640');
         $cert_file->dump_contents_from_array($cert_in_array);
 
         // Delete request

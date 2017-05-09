@@ -164,8 +164,8 @@ class External_Certificates
         if (!empty($key)) {
             $file = new File($key);
             $file->move_to(self::PATH_CERTIFICATES . '/' . $name . '.key');
-            $file->chmod(600);
-            $file->chown('root', 'root');
+            $file->chmod('0640');
+            $file->chown('root', SSL::CERT_GROUP);
         }
 
         if (!empty($intermediate)) {
@@ -278,78 +278,6 @@ class External_Certificates
             if ($file->exists())
                 $file->delete();
         }
-    }
-
-    /**
-     * Get group ownership on key.
-     *
-     * @param string $name name
-     *
-     * @return array
-     * @throws Engine_Exception
-     */
-
-    public function get_key_group($name)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $file = new File(self::PATH_CERTIFICATES . '/' . $name . '.key', TRUE);
-        $ownership = $file->get_ownership();
-        return $ownership['group'];
-    }
-
-    /**
-     * Set group ownership on key.
-     *
-     * @param string $name  name
-     * @param string $group group name
-     *
-     * @return void
-     * @throws Engine_Exception
-     */
-
-    public function set_key_group($name, $group)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $file = new File(self::PATH_CERTIFICATES . '/' . $name . '.key', TRUE);
-        $ownership = $file->get_ownership();
-        $file->chown($ownership['owner'], $group);;
-    }
-
-    /**
-     * Get permissions on key.
-     *
-     * @param string $name name
-     *
-     * @return string
-     * @throws Engine_Exception
-     */
-
-    public function get_key_permissions($name)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $file = new File(self::PATH_CERTIFICATES . '/' . $name . '.key');
-        return $file->get_permissions();
-    }
-
-    /**
-     * Set permissions on key.
-     *
-     * @param string $name name
-     * @param int    $permissions permissions
-     *
-     * @return void
-     * @throws Engine_Exception
-     */
-
-    public function set_key_permissions($name, $permissions)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $file = new File(self::PATH_CERTIFICATES . '/' . $name . '.key');
-        $file->chmod($permissions);
     }
 
     /**
@@ -536,28 +464,6 @@ class External_Certificates
     }
 
     /**
-     * Returns a list of file permission options.
-     *
-     * @return array
-     */
-
-    function get_file_permission_options()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        // Umask is inverted.
-        $options = array(
-            600 => "rw----",
-            640 => "rwr---",
-            644 => "rwr-r-",
-            660 => "rwrw--",
-            664 => "rwrwr-"
-        );
-
-        return $options;
-    }
-
-    /**
      * Creates a new SSL certificate request + key pair.
      *
      * @param string $name     simple name for the certificate which will be used as a filename
@@ -595,8 +501,8 @@ class External_Certificates
             throw new Engine_Exception($errstr);
         }
 
-        $file->chmod(600);
-        $file->chown('root', 'root');
+        $file->chmod('0640');
+        $file->chown('root', SSL::CERT_GROUP);
 
         $ssl = new SSL();
         $ssl->set_rsa_key_size($metadata['key_size']);

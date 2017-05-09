@@ -61,6 +61,8 @@ $app['requires'] = array(
 );
 
 $app['core_requires'] = array(
+    '/usr/bin/getent',
+    '/usr/sbin/groupadd',
     'app-base-core >= 1:2.3.0',
     'app-events-core >= 1:1.6.0',
     'app-network-core', 
