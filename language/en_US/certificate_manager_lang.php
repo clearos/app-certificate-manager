@@ -22,6 +22,7 @@ $lang['certificate_manager_certificate_request_invalid'] = 'Certificate request 
 $lang['certificate_manager_certificates'] = 'Certificates';
 $lang['certificate_manager_certificate_type'] = 'Certificate Type';
 $lang['certificate_manager_deployed'] = 'Deployed';
+$lang['certificate_manager_deployed_help'] = 'This certificate is in use, so delete functions have been disabled.';
 $lang['certificate_manager_key_size_invalid'] = 'Key size invalid';
 $lang['certificate_manager_recommended'] = 'recommended';
 $lang['certificate_manager_common_name'] = 'Common Name';

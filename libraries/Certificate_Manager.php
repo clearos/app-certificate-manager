@@ -57,11 +57,13 @@ clearos_load_language('certificate_manager');
 
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
+use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\certificate_manager\External_Certificates as External_Certificates;
 use \clearos\apps\certificate_manager\SSL as SSL;
 
 clearos_load_library('base/Engine');
 clearos_load_library('base/File');
+clearos_load_library('base/Folder');
 clearos_load_library('certificate_manager/External_Certificates');
 clearos_load_library('certificate_manager/SSL');
 
@@ -95,7 +97,7 @@ class Certificate_Manager extends Engine
     ///////////////////////////////////////////////////////////////////////////////
 
     const DEFAULT_CERT = 'sys-0-cert.pem';
-    const FILE_STATE = '/var/clearos/certificate_manager/state';
+    const PATH_STATE = '/var/clearos/certificate_manager/state';
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
@@ -192,26 +194,37 @@ class Certificate_Manager extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $file = new File(self::FILE_STATE);
+        $found_webconfig = FALSE;
 
-        if (!$file->exists())
-            return [];
+        $folder = new Folder(self::PATH_STATE);
+        $listing = $folder->get_listing();
 
-        $line = $file->get_contents_as_array();
+        foreach ($listing as $config) {
+            if (!preg_match('/\.conf$/', $config))
+                continue;
 
-        $raw_state = json_decode($line[0]);
+            $file = new File(self::PATH_STATE . '/' . $config);
+            $line = $file->get_contents_as_array();
 
-        $state = [];
+            $app_state = json_decode($line[0]);
+            $app_name = preg_replace('/\.conf$/', '', $config);
 
-        foreach ($raw_state as $app_name => $payload) {
-            foreach ($payload->certs as $nickname => $certificate) {
+            if ($app_name == 'webconfig')
+                $found_webconfig = TRUE;
+
+            foreach ($app_state->certs as $nickname => $certificate) {
                 $item['app_name'] = $app_name;
-                $item['description'] = $payload->description;
+                $item['description'] = $app_state->description;
                 $item['nickname'] = $nickname;
                 $state[$certificate][] = $item;
             }
-/*
-*/
+        }
+
+        if (!$found_webconfig) {
+            $item['app_name'] = 'base';
+            $item['description'] = 'Webconfig';
+            $item['nickname'] = 'Web-based Admin';
+            $state['sys-0-cert.pem'][] = $item;
         }
 
         if ($cert)
@@ -237,12 +250,10 @@ class Certificate_Manager extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $current = $this->get_state();
+        $current['description'] = $description;
+        $current['certs'] = $certs;
 
-        $current[$app_name]['description'] = $description;
-        $current[$app_name]['certs'] = $certs;
-
-        $file = new File(self::FILE_STATE);
+        $file = new File(self::PATH_STATE . '/' . $app_name . '.conf');
 
         if ($file->exists())
             $file->delete();

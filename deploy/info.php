@@ -101,6 +101,7 @@ $app['core_directory_manifest'] = array(
     ),
     '/var/clearos/certificate_manager' => array(),
     '/var/clearos/certificate_manager/backup' => array(),
+    '/var/clearos/certificate_manager/state' => array(),
     '/var/clearos/events/certificate_manager' => array(),
 );
 

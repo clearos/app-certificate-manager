@@ -280,6 +280,7 @@ class Certificate extends ClearOS_Controller
         $this->lang->load('certificate_manager');
         $this->load->library('base/Country');
         $this->load->library('certificate_manager/SSL');
+        $this->load->library('certificate_manager/Certificate_Manager');
 
         // Set validation rules
         //---------------------
@@ -338,6 +339,8 @@ class Certificate extends ClearOS_Controller
                 $data['country'] = $this->ssl->get_default_country();
             } else {
                 $attributes = $this->ssl->get_certificate_attributes($certificate);
+
+                $data['state'] = $this->certificate_manager->get_state($certificate);
 
                 $data['type'] = $attributes['type'];
                 $data['organization'] = $attributes['org_name'];

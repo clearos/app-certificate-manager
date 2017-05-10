@@ -86,9 +86,6 @@ foreach ($certificates as $cert => $files) {
     if (!$crt_exists)
         $buttons[] = anchor_custom('/app/certificate_manager/external/import_crt/' . $cert, lang('certificate_manager_import_crt'));
 
-    if (strcmp($cert, '_default_') != 0)
-        $buttons[] = anchor_custom('/app/certificate_manager/external/delete/' . $cert, lang('base_delete'));
-
     $item['anchors'] = button_set($buttons);
     sort($parts);
     $item['details'] = array($name, implode(", ", $parts));

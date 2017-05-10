@@ -99,3 +99,37 @@ echo field_button_set($buttons);
 
 echo form_footer();
 echo form_close();
+
+///////////////////////////////////////////////////////////////////////////////
+// State
+///////////////////////////////////////////////////////////////////////////////
+
+if ($type != 'ca') {
+    $items = array();
+    $anchors = array();
+
+    $headers = array(
+        lang('certificate_manager_app'),
+        lang('base_details'),
+    );
+
+    foreach ($state as $certificate) {
+        $item['title'] = $certificate['description'];
+        $item['details'] = array(
+            $certificate['description'],
+            $certificate['nickname'],
+        );
+
+        $items[] = $item;
+    }
+
+    $options['no_action'] = TRUE;
+
+    echo summary_table(
+        lang('certificate_manager_deployed'),
+        $anchors,
+        $headers,
+        $items,
+        $options
+    );
+}
