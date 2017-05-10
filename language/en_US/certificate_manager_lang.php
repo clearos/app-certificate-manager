@@ -53,6 +53,7 @@ $lang['certificate_manager_key_file'] = 'Key File';
 $lang['certificate_manager_key_size'] = 'Key Size';
 $lang['certificate_manager_name'] = 'Name';
 $lang['certificate_manager_name_invalid'] = 'Name is invalid.';
+$lang['certificate_manager_not_in_use'] = 'Certificate is not in use.';
 $lang['certificate_manager_password_must_begin_with_letter_or_number'] = 'Password must begin with a letter or number.';
 $lang['certificate_manager_pkcs12'] = 'PKCS12';
 $lang['certificate_manager_private_key'] = 'Private Key';

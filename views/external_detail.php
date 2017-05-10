@@ -74,6 +74,7 @@ foreach ($state as $certificate) {
 }
 
 $options['no_action'] = TRUE;
+$options['empty_table_message'] = lang('certificate_manager_not_in_use');
 
 echo summary_table(
     lang('certificate_manager_deployed'),
