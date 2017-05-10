@@ -1,6 +1,7 @@
 <?php
 
 
+$lang['certificate_manager_app'] = 'App Name';
 $lang['certificate_manager_add_certificate'] = 'Add Certificate';
 $lang['certificate_manager_app_description'] = 'Security certificates are an industry standard for encrypting information sent over a network, providing authentication and enabling digital signatures.  The Certificate Manager app provides the ability to create, manage and deploy security certificates to users and apps.';
 $lang['certificate_manager_app_name'] = 'Certificate Manager';
@@ -20,6 +21,7 @@ $lang['certificate_manager_certificate_in_use'] = 'Certificate is in use.';
 $lang['certificate_manager_certificate_request_invalid'] = 'Certificate request is invalid.';
 $lang['certificate_manager_certificates'] = 'Certificates';
 $lang['certificate_manager_certificate_type'] = 'Certificate Type';
+$lang['certificate_manager_deployed'] = 'Deployed';
 $lang['certificate_manager_key_size_invalid'] = 'Key size invalid';
 $lang['certificate_manager_recommended'] = 'recommended';
 $lang['certificate_manager_common_name'] = 'Common Name';

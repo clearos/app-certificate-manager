@@ -2632,9 +2632,9 @@ class SSL extends Engine
         $file = new File($filename, TRUE);
 
         if (!$file->exists()) {
-            $file->create('root', 'root', '0644');
+            $file->create('root', self::CERT_GROUP, '0644');
         } else {
-            $file->chown('root', 'root');
+            $file->chown('root', self::CERT_GROUP);
             $file->chmod('0644');
         }
 

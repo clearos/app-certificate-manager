@@ -65,6 +65,7 @@ class External extends ClearOS_Controller
         $this->lang->load('certificate_manager');
         $this->load->module('accounts/status');
         $this->load->library('External_Certificates');
+        $this->load->library('Certificate_Manager');
 
         // Load view data
         //---------------
@@ -72,6 +73,7 @@ class External extends ClearOS_Controller
         try {
             $data['accounts_uninitialized'] = $this->status->unhappy();
             $data['certificates'] = $this->external_certificates->get_certs();
+            $data['state'] = $this->certificate_manager->get_state();
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
@@ -98,6 +100,7 @@ class External extends ClearOS_Controller
 
         $this->lang->load('certificate_manager');
         $this->load->library('External_Certificates');
+        $this->load->library('Certificate_Manager');
 
         // Load view data
         //---------------
@@ -106,6 +109,7 @@ class External extends ClearOS_Controller
             $data['name'] = $cert;
             $data['details'] = $this->external_certificates->get_cert_details($cert);
             $data['certificate'] = $this->external_certificates->get_cert($cert);
+            $data['state'] = $this->certificate_manager->get_state($cert);
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;

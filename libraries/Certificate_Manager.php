@@ -95,6 +95,7 @@ class Certificate_Manager extends Engine
     ///////////////////////////////////////////////////////////////////////////////
 
     const DEFAULT_CERT = 'sys-0-cert.pem';
+    const FILE_STATE = '/var/clearos/certificate_manager/state';
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
@@ -181,18 +182,72 @@ class Certificate_Manager extends Engine
     }
 
     /**
-     * Registers certificate use to state file.
-     *
-     * @param array $share share information
+     * Returns certificate use from state file.
      *
      * @return void
      * @throws Engine_Exception
      */
 
-    public function register($certs, $basename)
+    public function get_state($cert = NULL)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        print_r($certs);
+        $file = new File(self::FILE_STATE);
+
+        if (!$file->exists())
+            return [];
+
+        $line = $file->get_contents_as_array();
+
+        $raw_state = json_decode($line[0]);
+
+        $state = [];
+
+        foreach ($raw_state as $app_name => $payload) {
+            foreach ($payload->certs as $nickname => $certificate) {
+                $item['app_name'] = $app_name;
+                $item['description'] = $payload->description;
+                $item['nickname'] = $nickname;
+                $state[$certificate][] = $item;
+            }
+/*
+*/
+        }
+
+        if ($cert)
+            $retval = $state[$cert];
+        else
+            $retval = $state;
+
+        return $retval;
+    }
+
+    /**
+     * Registers certificate use to state file.
+     *
+     * @param array $certs certificate list
+     * @param string $app_name app basename
+     * @param string $description app description
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    public function register($certs, $app_name, $description)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $current = $this->get_state();
+
+        $current[$app_name]['description'] = $description;
+        $current[$app_name]['certs'] = $certs;
+
+        $file = new File(self::FILE_STATE);
+
+        if ($file->exists())
+            $file->delete();
+
+        $file->create('root', 'root', '0644');
+        $file->add_lines(json_encode($current));
     }
 }
