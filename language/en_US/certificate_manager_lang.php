@@ -75,3 +75,5 @@ $lang['certificate_manager_web_browser_warning'] = 'Web Browser Warning';
 $lang['certificate_manager_web_interface_is_restarting'] = 'The web interface is restarting with the new security certificates.';
 $lang['certificate_manager_wizard_description'] = 'In order to enhance the overall security of your system, security certificates are required for accessing many apps.';
 $lang['certificate_manager_certificate_mismatch'] = 'Certificate mismatch - your certificate does not match your key.';
+$lang['certificate_manager_regenerate'] = 'Regenerate';
+$lang['certificate_manager_regenerate_confirm'] = 'Are you sure you want to regenerate the following:';

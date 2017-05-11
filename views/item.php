@@ -57,13 +57,12 @@ if ($form_type === 'add') {
 } else {
     $read_only = TRUE;
     $form = 'certificate_manager/certificate';
-    $buttons = array(
-        anchor_custom('/app/certificate_manager/certificate/install/' . $certificate, lang('base_install')),
-        anchor_custom('/app/certificate_manager/certificate/download/' . $certificate, lang('base_download')),
-        anchor_custom('/app/certificate_manager/certificate/delete/' . $certificate, lang('base_delete')),
-        anchor_cancel('/app/certificate_manager/certificate')
-    );
-
+    $buttons = array();
+    $buttons[] = anchor_custom('/app/certificate_manager/certificate/install/' . $certificate, lang('base_install'));
+    $buttons[] = anchor_custom('/app/certificate_manager/certificate/download/' . $certificate, lang('base_download'));
+    if ($type == 'ca')
+        $buttons[] = anchor_custom('/app/certificate_manager/certificate/regenerate/' . $certificate, lang('certificate_manager_regenerate'));
+    $buttons[] = anchor_cancel('/app/certificate_manager/certificate');
 }
 
 if ($type === 'ca') {
@@ -104,7 +103,7 @@ echo form_close();
 // State
 ///////////////////////////////////////////////////////////////////////////////
 
-if ($type != 'ca') {
+if (($type != 'ca') && ($from_type == 'view')) {
     $items = array();
     $anchors = array();
 

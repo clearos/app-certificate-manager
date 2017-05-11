@@ -166,6 +166,24 @@ class Certificate extends ClearOS_Controller
     }
 
     /**
+     * Regenerate view.
+     *
+     * @param string $certificate certificate
+     *
+     * @return view
+     */
+
+    function regenerate($certificate)
+    {
+        $this->lang->load('certificate_manager');
+
+        $confirm_uri = '/app/certificate_manager/certificate/destroy/' . $certificate;
+        $cancel_uri = '/app/certificate_manager/certificate';
+
+        $this->page->view_confirm(lang('certificate_manager_regenerate_confirm') . ' ' . $certificate, $confirm_uri, $cancel_uri);
+    }
+
+    /**
      * Shows information when in slave mode.
      *
      * @return view

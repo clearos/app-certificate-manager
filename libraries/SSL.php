@@ -543,6 +543,55 @@ class SSL extends Engine
     }
 
     /**
+     * Initializes the default certificate authority and system certificate.
+     *
+     * @param string $hostname     hostname
+     * @param string $domain       domain
+     * @param string $organization organization name
+     * @param string $unit         organization unit
+     * @param string $city         city
+     * @param string $region       region
+     * @param string $country      country
+     *
+     * @return void
+     * @throws Certificate_Not_Found_Exception, Engine_Exception
+     */
+
+    public function create_system_certificate($hostname, $domain, $organization, $unit, $city, $region, $country)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        Validation_Exception::is_valid($this->validate_hostname($hostname));
+        Validation_Exception::is_valid($this->validate_organization($organization));
+        Validation_Exception::is_valid($this->validate_unit($unit));
+        Validation_Exception::is_valid($this->validate_city($city));
+        Validation_Exception::is_valid($this->validate_region($region));
+        Validation_Exception::is_valid($this->validate_country($country));
+
+        $exists = $this->exists_system_certificate();
+        if ($exists)
+            $this->delete_certificate('sys-0-cert.pem');
+
+        $ssl = new SSL();
+        $ssl->set_rsa_key_size(self::DEFAULT_KEY_SIZE);
+        $ssl->set_md(self::DEFAULT_MD);
+        $ssl->set_organization_name($organization);
+        $ssl->set_organizational_unit($unit);
+        $ssl->set_email_address('security@' . $domain);
+        $ssl->set_locality($city);
+        $ssl->set_state_or_province($region);
+        $ssl->set_country_code($country);
+        $ssl->set_term(SSL::TERM_10YEAR); 
+        $ssl->set_purpose(SSL::PURPOSE_SERVER_LOCAL);
+
+        // Create certificate
+        $filename = $ssl->create_certificate_request($hostname, SSL::PURPOSE_SERVER_LOCAL);
+        $ssl->sign_certificate_request($filename);
+
+        $this->configure_master_slave();
+    }
+
+    /**
      * Decrypts message.
      *
      * @param string $filename filename (including path) of the message to decrypt
@@ -1455,28 +1504,7 @@ class SSL extends Engine
             $this->configure_master_slave();
         }
 
-        $syscert_exists = $this->exists_system_certificate();
-
-        if (!$syscert_exists) {
-            $ssl = new SSL();
-            $ssl->set_rsa_key_size(self::DEFAULT_KEY_SIZE);
-            $ssl->set_md(self::DEFAULT_MD);
-            $ssl->set_organization_name($organization);
-            $ssl->set_organizational_unit($unit);
-            $ssl->set_email_address('security@' . $domain);
-            $ssl->set_locality($city);
-            $ssl->set_state_or_province($region);
-            $ssl->set_country_code($country);
-            $ssl->set_term(SSL::TERM_10YEAR); 
-            $ssl->set_purpose(SSL::PURPOSE_SERVER_LOCAL);
-
-            // Create certificate
-            $filename = $ssl->create_certificate_request($hostname, SSL::PURPOSE_SERVER_LOCAL);
-            $ssl->sign_certificate_request($filename);
-
-            $this->configure_master_slave();
-        }
-
+        $this->create_system_certificate($hostname, $domain, $organization, $unit, $city, $region, $country);
     }
 
     /**
