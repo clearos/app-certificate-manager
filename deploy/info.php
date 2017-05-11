@@ -68,6 +68,7 @@ $app['core_requires'] = array(
     'app-network-core', 
     'app-organization-core',
     'app-mode-core',
+    'clearos-framework >= 7.3.8',
     'csplugin-filesync',
     'openssl >= 1.0.0'
 );

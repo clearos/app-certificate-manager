@@ -64,10 +64,10 @@ $headers = array(
 );
 
 foreach ($state as $certificate) {
-    $item['title'] = $certificate['description'];
+    $item['title'] = $certificate['app_description'];
     $item['details'] = array(
-        $certificate['description'],
-        $certificate['nickname'],
+        $certificate['app_description'],
+        $certificate['app_key'],
     );
 
     $items[] = $item;

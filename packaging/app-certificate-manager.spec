@@ -20,11 +20,14 @@ Summary: Certificate Manager - Core
 License: LGPLv3
 Group: ClearOS/Libraries
 Requires: app-base-core
+Requires: /usr/bin/getent
+Requires: /usr/sbin/groupadd
 Requires: app-base-core >= 1:2.3.0
 Requires: app-events-core >= 1:1.6.0
 Requires: app-network-core
 Requires: app-organization-core
 Requires: app-mode-core
+Requires: clearos-framework >= 7.3.8
 Requires: csplugin-filesync
 Requires: openssl >= 1.0.0
 
@@ -44,6 +47,7 @@ cp -r * %{buildroot}/usr/clearos/apps/certificate_manager/
 install -d -m 0755 %{buildroot}/etc/clearos/certificate_manager.d
 install -d -m 0755 %{buildroot}/var/clearos/certificate_manager
 install -d -m 0755 %{buildroot}/var/clearos/certificate_manager/backup
+install -d -m 0755 %{buildroot}/var/clearos/certificate_manager/state
 install -d -m 0755 %{buildroot}/var/clearos/events/certificate_manager
 install -D -m 0755 packaging/certificate_manager_event %{buildroot}/var/clearos/events/certificate_manager/certificate_manager
 install -D -m 0644 packaging/filewatch-certificate-manager-event.conf %{buildroot}/etc/clearsync.d/filewatch-certificate-manager-event.conf
@@ -92,6 +96,7 @@ exit 0
 %dir /etc/clearos/certificate_manager.d
 %dir /var/clearos/certificate_manager
 %dir /var/clearos/certificate_manager/backup
+%dir /var/clearos/certificate_manager/state
 %dir /var/clearos/events/certificate_manager
 /usr/clearos/apps/certificate_manager/deploy
 /usr/clearos/apps/certificate_manager/language

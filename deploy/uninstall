@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# Put webconfig back into a sane state
+#-------------------------------------
+
+rm -fv /var/clearos/certificate_manager/state/webconfig.conf
+
+CERT_CONF="/usr/clearos/sandbox/etc/httpd/conf.d/certs.conf"
+echo "SSLCertificateFile /usr/clearos/sandbox/etc/httpd/conf/server.crt" > $CERT_CONF
+echo "SSLCertificateKeyFile /usr/clearos/sandbox/etc/httpd/conf/server.key" >> $CERT_CONF

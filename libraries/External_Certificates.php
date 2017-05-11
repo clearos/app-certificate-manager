@@ -351,7 +351,7 @@ class External_Certificates
         clearos_profile(__METHOD__, __LINE__);
 
         Validation_Exception::is_valid($this->validate_name($cert));
-    
+
         $shell = new Shell();
 
         // First, check if cert exists...if not, check for CSR
@@ -370,7 +370,7 @@ class External_Certificates
             $cert = escapeshellarg($cert);
             if (!$file->exists())
                 throw new Certificate_Not_Found_Exception();
-                
+
             $shell->execute(
                 self::COMMAND_OPENSSL,
                 "req -in '" . self::PATH_CERTIFICATES . "/$cert.req' -text -noout",
@@ -411,11 +411,13 @@ class External_Certificates
     /**
      * Returns list of available server certificates.
      *
+     * @param boolean $with_incomplete also return incomplete certificates
+     *
      * @return array list of available server certificates
      * @throws Engine_Exception
      */
 
-    public function get_server_certificates()
+    public function get_server_certificates($with_incomplete = FALSE)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -438,6 +440,16 @@ class External_Certificates
                     $certs[$cert]['intermediate-filename'] = $filename;
                 elseif ($match[2] === 'key')
                     $certs[$cert]['key-filename'] = $filename;
+            }
+        }
+
+        // Add a flag to indicate incomplete certificates
+        foreach ($certs as $cert => $details) {
+            if (!array_key_exists('certificate-filename', $details) || !array_key_exists('key-filename', $details)) {
+                if ($with_incomplete)
+                    $certs[$cert]['incomplete'] = TRUE;
+                else
+                    unset($certs[$cert]);
             }
         }
 
@@ -487,7 +499,7 @@ class External_Certificates
 
         $password = '';
         if ($metadata['password'] != '')
-            $password = '-passout pass:' . $metadata['password']; 
+            $password = '-passout pass:' . $metadata['password'];
 
         $exitcode = $shell->execute(
             self::COMMAND_OPENSSL,

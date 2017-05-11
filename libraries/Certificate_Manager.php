@@ -142,7 +142,6 @@ class Certificate_Manager extends Engine
             $list[$basename]['certificate-filename'] = SSL::PATH_SSL . '/' . $basename;
             $list[$basename]['ca-filename'] = SSL::FILE_CA_CRT;
             $list[$basename]['key-filename'] = SSL::PATH_SSL_PRIVATE . '/sys-0-key.pem';
-
         }
 
         return $list;
@@ -184,6 +183,32 @@ class Certificate_Manager extends Engine
     }
 
     /**
+     * Returns certificate registration use from state file.
+     *
+     * @param string $app_name app name
+     * @param string $app_key app key (e.g. virtual host)
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    public function get_registered_certificate($app_name, $app_key)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $state = $this->get_state();
+
+        foreach ($state as $cert => $list) {
+            foreach ($list as $details) {
+                if (($details['app_name'] == $app_name) && ($details['app_key'] == $app_key))
+                    return $cert;
+            }
+        }
+
+        return '';
+    }
+
+    /**
      * Returns certificate use from state file.
      *
      * @return void
@@ -193,8 +218,6 @@ class Certificate_Manager extends Engine
     public function get_state($cert = NULL)
     {
         clearos_profile(__METHOD__, __LINE__);
-
-        $found_webconfig = FALSE;
 
         $folder = new Folder(self::PATH_STATE);
         $listing = $folder->get_listing();
@@ -209,22 +232,12 @@ class Certificate_Manager extends Engine
             $app_state = json_decode($line[0]);
             $app_name = preg_replace('/\.conf$/', '', $config);
 
-            if ($app_name == 'webconfig')
-                $found_webconfig = TRUE;
-
-            foreach ($app_state->certs as $nickname => $certificate) {
+            foreach ($app_state->certs as $app_key => $certificate) {
                 $item['app_name'] = $app_name;
-                $item['description'] = $app_state->description;
-                $item['nickname'] = $nickname;
+                $item['app_description'] = $app_state->app_description;
+                $item['app_key'] = $app_key;
                 $state[$certificate][] = $item;
             }
-        }
-
-        if (!$found_webconfig) {
-            $item['app_name'] = 'base';
-            $item['description'] = 'Webconfig';
-            $item['nickname'] = 'Web-based Admin';
-            $state['sys-0-cert.pem'][] = $item;
         }
 
         if ($cert)
@@ -236,21 +249,21 @@ class Certificate_Manager extends Engine
     }
 
     /**
-     * Registers certificate use to state file.
+     * Registers a bunch of certificates at once.
      *
      * @param array $certs certificate list
      * @param string $app_name app basename
-     * @param string $description app description
+     * @param string $app_description app description
      *
      * @return void
      * @throws Engine_Exception
      */
 
-    public function register($certs, $app_name, $description)
+    public function register($certs, $app_name, $app_description)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $current['description'] = $description;
+        $current['app_description'] = $app_description;
         $current['certs'] = $certs;
 
         $file = new File(self::PATH_STATE . '/' . $app_name . '.conf');
