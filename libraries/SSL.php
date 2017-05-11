@@ -2714,6 +2714,11 @@ class SSL extends Engine
 
         $file = new File(self::FILE_CLEARSYNC);
 
+        $current_contents = '';
+
+        if ($file->exists())
+            $current_contents = $file->get_contents();
+
         $contents = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>
 <!-- ClearSync Certificate Manager FileSync Plugin Configuration -->
 <plugin name=\"CertificateManagerFileSync\" library=\"libcsplugin-filesync.so\" stack-size=\"65536\">
@@ -2731,6 +2736,9 @@ class SSL extends Engine
   vi: syntax=xml expandtab shiftwidth=2 softtabstop=2 tabstop=2
 -->
 ";
+
+        if (trim($current_contents) == trim($contents))
+            return;
 
         if ($file->exists())
             $file->delete();
@@ -2762,6 +2770,11 @@ class SSL extends Engine
 
         $file = new File(self::FILE_CLEARSYNC);
 
+        $current_contents = '';
+
+        if ($file->exists())
+            $current_contents = $file->get_contents();
+
         $contents = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>
 <!-- ClearSync Certificate Manager FileSync Plugin Configuration -->
 <plugin name=\"CertificateManagerFileSync\" library=\"libcsplugin-filesync.so\" stack-size=\"65536\">
@@ -2779,6 +2792,8 @@ class SSL extends Engine
   vi: syntax=xml expandtab shiftwidth=2 softtabstop=2 tabstop=2
 -->
 ";
+        if (trim($current_contents) == trim($contents))
+            return;
 
         if ($file->exists())
             $file->delete();
