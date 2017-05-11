@@ -98,6 +98,7 @@ class Certificate_Manager extends Engine
 
     const DEFAULT_CERT = 'sys-0-cert.pem';
     const PATH_STATE = '/var/clearos/certificate_manager/state';
+    const API_VERSION = 1;
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
@@ -246,6 +247,26 @@ class Certificate_Manager extends Engine
             $retval = $state;
 
         return $retval;
+    }
+
+    /**
+     * Registers version.
+     *
+     * The base webconfig app needs to know the capabilities of this
+     * class in order to keep things sane (otherwise, we'll have to
+     * add a circular dependency:
+     * - app-base required app-certificate-manager
+     * - app-certificate-manager required app-base
+     *
+     * @return string version
+     * @throws Engine_Exception
+     */
+
+    public function get_api_version()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        return self::API_VERSION;
     }
 
     /**
