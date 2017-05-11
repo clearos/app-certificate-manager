@@ -1003,7 +1003,7 @@ class SSL extends Engine
 
         $temp_file = new File($temp_name);
         $temp_file->chmod('0640');
-        $temp_file->chown('root', self::CERT_GROUP);
+        $temp_file->chown('root', 'webconfig');  // Just a temp file, webconfig readable
 
         $attributes['file_size'] = filesize($temp_name);
 
