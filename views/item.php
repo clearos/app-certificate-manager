@@ -103,7 +103,7 @@ echo form_close();
 // State
 ///////////////////////////////////////////////////////////////////////////////
 
-if (($type != 'ca') && ($from_type == 'view')) {
+if (($type != 'ca') && ($form_type == 'view')) {
     $items = array();
     $anchors = array();
 
