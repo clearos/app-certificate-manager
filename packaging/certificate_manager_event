@@ -1,33 +1,51 @@
-#!/bin/sh
+#!/usr/clearos/sandbox/usr/bin/php
+<?php
 
-if [ -e /etc/pki/CA/sys-0-cert.pem ]; then
-    TIMESTAMP=`date "+%b-%d-%Y-%T"`
-    RESTART=""
+/**
+ * Samba initialization script.
+ *
+ * @category   apps
+ * @package    samba
+ * @subpackage scripts
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2012 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/samba/
+ */
 
-    SYSTEM_CERT_MD5=`/usr/bin/md5sum /etc/pki/CA/sys-0-cert.pem 2>/dev/null | /bin/awk '{ print $1 }'` 
-    WEBCONFIG_CERT_MD5=`/usr/bin/md5sum /usr/clearos/sandbox/etc/httpd/conf/server.crt | /bin/awk '{ print $1 }'` 
-    
-    if [ "$SYSTEM_CERT_MD5" != "$WEBCONFIG_CERT_MD5" ]; then
-        logger -p local6.notice -t events "certificate_manager - provisioning new webconfig certificate"
-        cp /usr/clearos/sandbox/etc/httpd/conf/server.crt /var/clearos/certificate_manager/backup/server.crt.$TIMESTAMP
-        cp /etc/pki/CA/sys-0-cert.pem /usr/clearos/sandbox/etc/httpd/conf/server.crt
-        RESTART="yes"
-    fi
+///////////////////////////////////////////////////////////////////////////////
+// B O O T S T R A P
+///////////////////////////////////////////////////////////////////////////////
 
-    SYSTEM_KEY_MD5=`/usr/bin/md5sum /etc/pki/CA/private/sys-0-key.pem 2>/dev/null | /bin/awk '{ print $1 }'` 
-    WEBCONFIG_KEY_MD5=`/usr/bin/md5sum /usr/clearos/sandbox/etc/httpd/conf/server.key | /bin/awk '{ print $1 }'` 
+$bootstrap = getenv('CLEAROS_BOOTSTRAP') ? getenv('CLEAROS_BOOTSTRAP') : '/usr/clearos/framework/shared';
+require_once $bootstrap . '/bootstrap.php';
 
-    if [ "$SYSTEM_KEY_MD5" != "$WEBCONFIG_KEY_MD5" ]; then
-        logger -p local6.notice -t events "certificate_manager - provisioning new webconfig key"
-        cp /usr/clearos/sandbox/etc/httpd/conf/server.key /var/clearos/certificate_manager/backup/server.key.$TIMESTAMP
-        cp /etc/pki/CA/private/sys-0-key.pem /usr/clearos/sandbox/etc/httpd/conf/server.key
-        RESTART="yes"
-    fi
+///////////////////////////////////////////////////////////////////////////////
+// D E P E N D E N C I E S
+///////////////////////////////////////////////////////////////////////////////
 
-    if [ -n "$RESTART" ]; then
-        logger -p local6.notice -t events "certificate_manager - triggering webconfig restart"
-        /usr/clearos/apps/base/deploy/syncaction webconfig_change_event
-    fi
-fi
+use \clearos\apps\base\File as File;
+use \clearos\apps\base\Webconfig as Webconfig;
 
-exit 0
+clearos_load_library('base/File');
+clearos_load_library('base/Webconfig');
+
+///////////////////////////////////////////////////////////////////////////////
+// M A I N
+///////////////////////////////////////////////////////////////////////////////
+
+// Bail if we have already set the system certificate
+$file = new File('/var/clearos/certificate_manager/webconfig');
+
+if ($file->exists())
+    exit(0);
+
+// Set the system certificate
+$webconfig = new Webconfig();
+$options = $webconfig->get_ssl_certificate_options();
+
+if (!array_key_exists('sys-0-cert.pem', $options))
+    exit(0);
+
+$webconfig->set_ssl_certificate('sys-0-cert.pem');
+$file->create('root', 'root', '0644');
