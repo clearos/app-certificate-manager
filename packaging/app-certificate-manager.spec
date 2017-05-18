@@ -1,7 +1,7 @@
 
 Name: app-certificate-manager
 Epoch: 1
-Version: 2.3.26
+Version: 2.3.27
 Release: 1%{dist}
 Summary: Certificate Manager
 License: GPLv3
@@ -22,7 +22,7 @@ Group: ClearOS/Libraries
 Requires: app-base-core
 Requires: /usr/bin/getent
 Requires: /usr/sbin/groupadd
-Requires: app-base-core >= 1:2.3.0
+Requires: app-base-core >= 1:2.3.39
 Requires: app-events-core >= 1:1.6.0
 Requires: app-network-core
 Requires: app-organization-core

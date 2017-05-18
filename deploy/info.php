@@ -5,7 +5,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 $app['basename'] = 'certificate_manager';
-$app['version'] = '2.3.26';
+$app['version'] = '2.3.27';
 $app['release'] = '1';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
@@ -63,7 +63,7 @@ $app['requires'] = array(
 $app['core_requires'] = array(
     '/usr/bin/getent',
     '/usr/sbin/groupadd',
-    'app-base-core >= 1:2.3.0',
+    'app-base-core >= 1:2.3.39',
     'app-events-core >= 1:1.6.0',
     'app-network-core', 
     'app-organization-core',
