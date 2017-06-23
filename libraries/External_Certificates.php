@@ -159,6 +159,8 @@ class External_Certificates
         if (!empty($cert)) {
             $file = new File($cert);
             $file->move_to(self::PATH_CERTIFICATES . '/' . $name . '.crt');
+            $file->chmod('0644');
+            $file->chown('root', SSL::CERT_GROUP);
         }
 
         if (!empty($key)) {
@@ -171,11 +173,15 @@ class External_Certificates
         if (!empty($intermediate)) {
             $file = new File($intermediate);
             $file->move_to(self::PATH_CERTIFICATES . '/' . $name . '.intermediate');
+            $file->chmod('0640');
+            $file->chown('root', SSL::CERT_GROUP);
         }
 
         if (!empty($ca)) {
             $file = new File($ca);
             $file->move_to(self::PATH_CERTIFICATES . '/' . $name . '.ca');
+            $file->chmod('0640');
+            $file->chown('root', SSL::CERT_GROUP);
         }
     }
 

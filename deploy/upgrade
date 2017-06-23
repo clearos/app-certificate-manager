@@ -8,18 +8,13 @@
 # ssl-cert group handling
 #------------------------
 
-CHECK=`/usr/bin/getent group ssl-cert`
-if [ -z "$CHECK" ]; then
-    logger -p local6.notice -t installer "app-certificate-manager - adding ssl-cert group"
-    /usr/sbin/groupadd -r ssl-cert 
-fi
-
-# Only update permissions once
-if [ ! -e /var/clearos/certificate_manager/permissions_updated ]; then
+if [ ! -e /var/clearos/certificate_manager/permissions_updated.v2 ]; then
+    logger -p local6.notice -t installer "app-certificate-manager - updating ssl-cert permissions"
     find /etc/clearos/certificate_manager.d -not -group ssl-cert -exec chgrp ssl-cert  '{}' \;
     find /etc/clearos/certificate_manager.d -not -user root -exec chown root  '{}' \;
     find /etc/clearos/certificate_manager.d -type f -exec chmod 0640  '{}' \;
-    touch /var/clearos/certificate_manager/permissions_updated
+    chmod 644 /etc/clearos/certificate_manager.d/defaults.conf 2>/dev/null
+    touch /var/clearos/certificate_manager/permissions_updated.v2
 fi
 
 # Generate temporary system certificates

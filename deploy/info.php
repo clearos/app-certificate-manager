@@ -5,7 +5,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 $app['basename'] = 'certificate_manager';
-$app['version'] = '2.3.27';
+$app['version'] = '2.3.28';
 $app['release'] = '1';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
@@ -99,12 +99,16 @@ $app['core_file_manifest'] = array(
 $app['core_directory_manifest'] = array(
     '/etc/clearos/certificate_manager.d' => array(
         'mode' => '0755',
+        'owner' => 'root',
+        'group' => 'ssl-cert',
     ),
     '/var/clearos/certificate_manager' => array(),
     '/var/clearos/certificate_manager/backup' => array(),
     '/var/clearos/certificate_manager/state' => array(),
     '/var/clearos/events/certificate_manager' => array(),
 );
+
+$app['core_preinstall'] = "/usr/bin/getent group ssl-cert >/dev/null || /usr/sbin/groupadd -r ssl-cert\n";
 
 $app['delete_dependency'] = array();
 

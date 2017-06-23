@@ -1,7 +1,7 @@
 
 Name: app-certificate-manager
 Epoch: 1
-Version: 2.3.27
+Version: 2.3.28
 Release: 1%{dist}
 Summary: Certificate Manager
 License: GPLv3
@@ -55,6 +55,9 @@ install -D -m 0644 packaging/index.txt %{buildroot}/etc/pki/CA/index.txt
 install -D -m 0644 packaging/openssl.cnf %{buildroot}/etc/pki/CA/openssl.cnf
 install -D -m 0644 packaging/serial %{buildroot}/etc/pki/CA/serial
 
+%pre core
+/usr/bin/getent group ssl-cert >/dev/null || /usr/sbin/groupadd -r ssl-cert
+
 %post
 logger -p local6.notice -t installer 'app-certificate-manager - installing'
 
@@ -93,7 +96,7 @@ exit 0
 %exclude /usr/clearos/apps/certificate_manager/packaging
 %exclude /usr/clearos/apps/certificate_manager/unify.json
 %dir /usr/clearos/apps/certificate_manager
-%dir /etc/clearos/certificate_manager.d
+%dir %attr(0755,root,ssl-cert) /etc/clearos/certificate_manager.d
 %dir /var/clearos/certificate_manager
 %dir /var/clearos/certificate_manager/backup
 %dir /var/clearos/certificate_manager/state
