@@ -1030,6 +1030,25 @@ class SSL extends Engine
             }
         }
 
+        $attributes['domains'] = [];
+        $attributes['details'] = [];
+
+        $args = "$type -in $filename -noout -text";
+        if ($shell->execute(SSL::COMMAND_OPENSSL, $args, TRUE, $options) == 0) {
+            $output = $shell->get_output();
+            $attributes['details'] = implode("\n", $output);
+            foreach ($output as $line) {
+                if (preg_match('/DNS:/', $line)) {
+                    $raw_list = preg_replace('/DNS:/', '', $line);
+                    $raw_list = preg_replace('/\s+/', '', $raw_list);
+                    $domains = preg_split('/,/', $raw_list);
+
+                    foreach ($domains as $domain)
+                        array_push($attributes['domains'], $domain);
+                }
+            }
+        }
+
         // Set type
         //---------
 
@@ -1045,22 +1064,7 @@ class SSL extends Engine
 
         clearstatcache();
 
-        $temp_name = preg_replace('/.*\//', '', $basename);
-        $temp_name = '/var/tmp/' . mt_rand() . '-' . $temp_name;
-
-        $file->copy_to($temp_name);
-
-        $temp_file = new File($temp_name);
-        $temp_file->chmod('0640');
-        $temp_file->chown('root', 'webconfig');  // Just a temp file, webconfig readable
-
-        $attributes['file_size'] = filesize($temp_name);
-
-        $file_handle = fopen($temp_name, 'r');
-        $attributes['file_contents'] = fread($file_handle, filesize($temp_name));
-        fclose($file_handle);
-
-        $temp_file->delete();
+        $attributes['file_contents'] = $file->get_contents();
 
         if (preg_match('/^ca-cert/', $basename)) {
             $attributes['cert_name'] = 'ca';
