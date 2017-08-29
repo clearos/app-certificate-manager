@@ -145,6 +145,16 @@ class Certificate_Manager extends Engine
             $list[$basename]['key-filename'] = SSL::PATH_SSL_PRIVATE . '/sys-0-key.pem';
         }
 
+        // Let's Encrypt
+        //--------------
+
+        if (clearos_load_library('lets_encrypt/Lets_Encrypt')) {
+            $lets = new  \clearos\apps\lets_encrypt\Lets_Encrypt();
+            $lets_list = $lets->get_certificate_files();
+
+            $list = array_merge($list, $lets_list);
+        }
+
         return $list;
     }
 
@@ -159,6 +169,17 @@ class Certificate_Manager extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         $list = array();
+
+        // Let's Encrypt
+        //--------------
+
+        if (clearos_load_library('lets_encrypt/Lets_Encrypt')) {
+            $lets = new  \clearos\apps\lets_encrypt\Lets_Encrypt();
+            $lets_list = $lets->get_certificates();
+
+            foreach ($lets_list as $basename => $details)
+                $list[$basename] = lang('certificate_manager_lets_encrypt') . ' - ' . $basename;
+        }
 
         // External
         //---------

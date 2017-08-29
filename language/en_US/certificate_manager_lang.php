@@ -77,3 +77,4 @@ $lang['certificate_manager_wizard_description'] = 'In order to enhance the overa
 $lang['certificate_manager_certificate_mismatch'] = 'Certificate mismatch - your certificate does not match your key.';
 $lang['certificate_manager_regenerate'] = 'Regenerate';
 $lang['certificate_manager_regenerate_confirm'] = 'Are you sure you want to regenerate the following:';
+$lang['certificate_manager_lets_encrypt'] = 'Let\'s Encrypt';
