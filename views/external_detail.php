@@ -31,25 +31,89 @@ if (!empty($state))
 // File information
 ///////////////////////////////////////////////////////////////////////////////
 
-$buttons = array();
+$file_anchors[] = anchor_custom('/app/certificate_manager', lang('base_return_to_summary'));
+$file_headers = array(
+    lang('base_description'),
+    lang('base_filename'),
+);
 
 if (empty($state))
-    $buttons[] = anchor_custom('/app/certificate_manager/external/delete/' . $name, lang('base_delete'));
+    $file_anchors[] = anchor_custom('/app/certificate_manager/external/delete/' . $name, lang('base_delete'), 'low');
 
-$buttons[] = anchor_custom('/app/certificate_manager', lang('base_return_to_summary'));
+// CSR
+//----
 
-echo form_open('certificate_manager/external/view/' . $name);
-echo form_header(lang('certificate_manager_file_information'));
+if ($certificate['req']) {
+    $basename = preg_replace('/.*\//', '', $certificate['req']);
 
-echo field_input('name', $name, lang('certificate_manager_name'), TRUE);
-echo field_input('key', $certificate['key'], lang('certificate_manager_key_file'), TRUE);
-echo field_input('crt', $certificate['crt'], lang('certificate_manager_certificate_file'), TRUE);
-echo field_input('intermediate', $certificate['intermediate'], lang('certificate_manager_intermediate_file'), TRUE);
+    $item['title'] = lang('certificate_manager_certificate_signing_request');
+    $item['details'] = array(
+        lang('certificate_manager_certificate_signing_request'),
+        $basename
+    );
+    $item['anchors'] = anchor_custom('/app/certificate_manager/certificate/download_external/' . $basename, lang('base_download'));
 
-echo field_button_set($buttons);
+    $file_items[] = $item;
+}
 
-echo form_footer();
-echo form_close();
+// Key File
+//---------
+
+if ($certificate['key']) {
+    $basename = preg_replace('/.*\//', '', $certificate['key']);
+
+    $item['title'] = lang('certificate_manager_key_file');
+    $item['details'] = array(
+        lang('certificate_manager_key_file'),
+        $basename
+    );
+    $item['anchors'] = anchor_custom('/app/certificate_manager/certificate/download_external/' . $basename, lang('base_download'));
+
+    $file_items[] = $item;
+}
+
+// Certificate
+//------------
+
+if ($certificate['crt']) {
+    $basename = preg_replace('/.*\//', '', $certificate['crt']);
+
+    $item['title'] = lang('certificate_manager_certificate_file');
+    $item['details'] = array(
+        lang('certificate_manager_certificate_file'),
+        $basename
+    );
+    $item['anchors'] = anchor_custom('/app/certificate_manager/certificate/download_external/' . $basename, lang('base_download'));
+
+    $file_items[] = $item;
+}
+
+// Intermediate
+//-------------
+
+if ($certificate['intermediate']) {
+    $basename = preg_replace('/.*\//', '', $certificate['intermediate']);
+
+    $item['title'] = lang('certificate_manager_intermediate_file');
+    $item['details'] = array(
+        lang('certificate_manager_intermediate_file'),
+        $basename
+    );
+    $item['anchors'] = anchor_custom('/app/certificate_manager/certificate/download_external/' . $basename, lang('base_download'));
+
+    $file_items[] = $item;
+}
+
+// Summary table
+//--------------
+
+echo summary_table(
+    lang('certificate_manager_file_information') . ' - ' . $name,
+    $file_anchors,
+    $file_headers,
+    $file_items,
+    []
+);
 
 ///////////////////////////////////////////////////////////////////////////////
 // State

@@ -166,6 +166,17 @@ class Certificate extends ClearOS_Controller
     }
 
     /**
+     * Downloads certificate to requesting client.
+     *
+     * @return string certificate
+     */
+
+    function download_external($certificate)
+    {
+        $this->_install_download('download', $certificate, TRUE);
+    }
+
+    /**
      * Regenerate view.
      *
      * @param string $certificate certificate
@@ -237,7 +248,7 @@ class Certificate extends ClearOS_Controller
      * @return string certificate
      */
     
-    function _install_download($type, $certificate)
+    function _install_download($type, $certificate, $is_external = FALSE)
     {
         // Load dependencies
         //------------------
@@ -249,6 +260,11 @@ class Certificate extends ClearOS_Controller
         //---------------
 
         try {
+            $basename = $certificate;
+
+            if ($is_external)
+                $certificate = '/etc/clearos/certificate_manager.d/' . $certificate;
+
             $attributes = $this->ssl->get_certificate_attributes($certificate);
         } catch (Engine_Exception $e) {
             $this->page->view_exception($e);
@@ -266,7 +282,7 @@ class Certificate extends ClearOS_Controller
 
         if ($type === 'download') {
             header("Content-Type: application/octet-stream");
-            header("Content-Disposition: attachment; filename=" . $certificate . ";");
+            header("Content-Disposition: attachment; filename=" . $basename . ";");
         } else {
             if (! empty($attributes['pkcs12']))
                 header("Content-Type: application/x-pkcs12-signature");

@@ -78,3 +78,4 @@ $lang['certificate_manager_certificate_mismatch'] = 'Certificate mismatch - your
 $lang['certificate_manager_regenerate'] = 'Regenerate';
 $lang['certificate_manager_regenerate_confirm'] = 'Are you sure you want to regenerate the following:';
 $lang['certificate_manager_lets_encrypt'] = 'Let\'s Encrypt';
+$lang['certificate_manager_certificate_signing_request'] = 'Certificate Signing Request';
