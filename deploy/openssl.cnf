@@ -62,7 +62,7 @@ req_extensions                 = v3_req
 [ req_distinguished_name ]
 countryName                    = CA
 localityName                   = Toronto
-0.organizationName             = ClearOS
+organizationName               = ClearOS
 organizationalUnitName         = ClearOS
 commonName                     = system.lan
 emailAddress                   = noreply@localhost
