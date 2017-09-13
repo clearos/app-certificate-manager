@@ -5,7 +5,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 $app['basename'] = 'certificate_manager';
-$app['version'] = '2.4.2';
+$app['version'] = '2.4.3';
 $app['release'] = '1';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
@@ -82,11 +82,6 @@ $app['core_file_manifest'] = array(
     ),
     'serial' => array(
         'target' => '/etc/pki/CA/serial',
-        'config' => TRUE,
-        'config_params' => 'noreplace',
-    ),
-    'openssl.cnf' => array(
-        'target' => '/etc/pki/CA/openssl.cnf',
         'config' => TRUE,
         'config_params' => 'noreplace',
     ),

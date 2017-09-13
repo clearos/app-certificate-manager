@@ -239,6 +239,7 @@ class SSL extends Engine
     // V A R I A B L E S
     ///////////////////////////////////////////////////////////////////////////////
 
+    protected $template = '';
     protected $configuration = NULL;
     protected $is_loaded = FALSE;
 
@@ -253,6 +254,8 @@ class SSL extends Engine
     public function __construct() 
     {
         clearos_profile(__METHOD__, __LINE__);
+
+        $this->template = clearos_app_base('certificate_manager') . '/deploy/openssl.cnf';
     }
 
     /**
@@ -1772,12 +1775,11 @@ class SSL extends Engine
      * Sets organization name.
      *
      * @param string $organization organization name
-     * @param string $default      sets default value
      *
      * @return void
      */
 
-    public function set_organization_name($organization, $default = FALSE)
+    public function set_organization_name($organization)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -1789,22 +1791,18 @@ class SSL extends Engine
 
         $req_dname = $this->configuration['req']['distinguished_name'];
 
-        if (!$default)
-            $this->configuration[$req_dname]['organizationName'] = $organization;
-        else
-            $this->_set_default_value($req_dname, 'organizationName_default', $organization);
+        $this->configuration[$req_dname]['organizationName'] = $organization;
     }
 
     /**
      * Sets organizational unit name.
      *
-     * @param string $unit    organizational unit (ie. Marketing, IT etc.)
-     * @param string $default sets default value
+     * @param string $unit organizational unit (ie. Marketing, IT etc.)
      *
      * @return void
      */
 
-    public function set_organizational_unit($unit, $default = FALSE)
+    public function set_organizational_unit($unit)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -1816,23 +1814,19 @@ class SSL extends Engine
 
         $req_dname = $this->configuration['req']['distinguished_name'];
 
-        if (!$default)
-            $this->configuration[$req_dname]['organizationalUnitName'] = $unit;
-        else
-            $this->_set_default_value($req_dname, 'organizationalUnitName_default', $unit);
+        $this->configuration[$req_dname]['organizationalUnitName'] = $unit;
     }
 
     /**
      * Sets email address.
      *
-     * @param string $email   e-mail address
-     * @param string $default sets default value
+     * @param string $email e-mail address
      *
      * @return void
      * @throws Validation_Exception
      */
 
-    public function set_email_address($email, $default = FALSE)
+    public function set_email_address($email)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -1844,22 +1838,18 @@ class SSL extends Engine
 
         $req_dname = $this->configuration['req']['distinguished_name'];
 
-        if (!$default)
-            $this->configuration[$req_dname]['emailAddress'] = $email;
-        else
-            $this->_set_default_value($req_dname, 'emailAddress_default', $email);
+        $this->configuration[$req_dname]['emailAddress'] = $email;
     }
 
     /**
      * Sets locality.
      *
      * @param string $locality locality (city, district)
-     * @param string $default  sets default value
      *
      * @return void
      */
 
-    public function set_locality($locality, $default = FALSE)
+    public function set_locality($locality)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -1871,22 +1861,18 @@ class SSL extends Engine
 
         $req_dname = $this->configuration['req']['distinguished_name'];
 
-        if (!$default)
-            $this->configuration[$req_dname]['localityName'] = $locality;
-        else
-            $this->_set_default_value($req_dname, 'localityName_default', $locality);
+        $this->configuration[$req_dname]['localityName'] = $locality;
     }
 
     /**
      * Sets state or province
      *
-     * @param string $state   state or province
-     * @param string $default sets default value
+     * @param string $state state or province
      *
      * @return void
      */
 
-    public function set_state_or_province($state, $default = FALSE)
+    public function set_state_or_province($state)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -1898,23 +1884,19 @@ class SSL extends Engine
 
         $req_dname = $this->configuration['req']['distinguished_name'];
 
-        if (!$default)
-            $this->configuration[$req_dname]['stateOrProvinceName'] = $state;
-        else
-            $this->_set_default_value($req_dname, 'stateOrProvinceName_default', $state);
+        $this->configuration[$req_dname]['stateOrProvinceName'] = $state;
     }
 
     /**
      * Sets country code.
      *
-     * @param string $code    country code
-     * @param string $default sets default value
+     * @param string $code country code
      *
      * @return void
      * @throws Validation_Exception, Engine_Exception
      */
 
-    public function set_country_code($code, $default = FALSE)
+    public function set_country_code($code)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -1926,10 +1908,7 @@ class SSL extends Engine
 
         $req_dname = $this->configuration['req']['distinguished_name'];
 
-        if (!$default)
-            $this->configuration[$req_dname]['countryName'] = $code;
-        else
-            $this->_set_default_value($req_dname, 'countryName_default', $code);
+        $this->configuration[$req_dname]['countryName'] = $code;
     }
 
     /**
@@ -2582,7 +2561,7 @@ class SSL extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $filename = SSL::FILE_CONF;
+        $filename = $this->template;
 
         $file = new File($filename, TRUE);
         $contents = $file->get_contents_as_array();
@@ -2671,30 +2650,6 @@ class SSL extends Engine
         }
 
         $file->dump_contents_from_array($expanded);
-    }
-
-    /**
-     * Sets a key to value.
-     *
-     * @param string $section configuration section
-     * @param string $key     configuration keyword
-     * @param string $value   keyword value
-     *
-     * @access private
-     * @return void
-     * @throws Engine_Exception
-     */
-
-    protected function _set_default_value($section, $key, $value)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (! $this->is_loaded)
-            $this->configuration = $this->_load_configuration();
-
-        $this->configuration[$section][$key] = $value;
-
-        $this->_save_configuration();
     }
 
     /**

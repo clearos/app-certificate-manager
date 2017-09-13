@@ -1,7 +1,7 @@
 
 Name: app-certificate-manager
 Epoch: 1
-Version: 2.4.2
+Version: 2.4.3
 Release: 1%{dist}
 Summary: Certificate Manager
 License: GPLv3
@@ -52,7 +52,6 @@ install -d -m 0755 %{buildroot}/var/clearos/events/certificate_manager
 install -D -m 0755 packaging/certificate_manager_event %{buildroot}/var/clearos/events/certificate_manager/certificate_manager
 install -D -m 0644 packaging/filewatch-certificate-manager-event.conf %{buildroot}/etc/clearsync.d/filewatch-certificate-manager-event.conf
 install -D -m 0644 packaging/index.txt %{buildroot}/etc/pki/CA/index.txt
-install -D -m 0644 packaging/openssl.cnf %{buildroot}/etc/pki/CA/openssl.cnf
 install -D -m 0644 packaging/serial %{buildroot}/etc/pki/CA/serial
 
 %pre core
@@ -107,5 +106,4 @@ exit 0
 /var/clearos/events/certificate_manager/certificate_manager
 /etc/clearsync.d/filewatch-certificate-manager-event.conf
 %config(noreplace) /etc/pki/CA/index.txt
-%config(noreplace) /etc/pki/CA/openssl.cnf
 %config(noreplace) /etc/pki/CA/serial
