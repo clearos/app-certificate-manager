@@ -73,12 +73,3 @@ fi
 if [ -e /etc/clearos/certificate_manager.d/_default_.key ]; then
     rm -f /etc/clearos/certificate_manager.d/_default_.key
 fi
-
-# Remove challenge password and company name requirements
-#--------------------------------------------------------
-
-CHECK=` grep ^attributes[[:space:]]*=[[:space:]]*req_attributes /etc/pki/CA/openssl.cnf 2>/dev/null`
-if [ -n "$CHECK" ]; then
-    logger -p local6.notice -t installer "app-certificate-manager - removing challenge password and company name attributes"
-    sed -i -e '/^attributes[[:space:]]*=[[:space:]]*req_attributes/d' /etc/pki/CA/openssl.cnf
-fi
