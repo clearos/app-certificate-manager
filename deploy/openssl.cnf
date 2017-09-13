@@ -57,6 +57,7 @@ default_keyfile                = /etc/pki/CA/private/ca-key.pem
 distinguished_name             = req_distinguished_name
 x509_extensions                = v3_ca
 string_mask                    = utf8only
+req_extensions                 = v3_req
 
 [ req_distinguished_name ]
 countryName                    = CA
@@ -68,6 +69,8 @@ emailAddress                   = noreply@localhost
 
 [ req_attributes ]
 
+[ alt_names ]
+
 [ usr_cert ]
 basicConstraints               = CA:FALSE
 nsComment                      = OpenSSL Generated Certificate
@@ -77,6 +80,7 @@ authorityKeyIdentifier         = keyid,issuer
 [ v3_req ]
 basicConstraints               = CA:FALSE
 keyUsage                       = nonRepudiation, digitalSignature, keyEncipherment
+subjectAltName                 = @alt_names
 
 [ v3_ca ]
 subjectKeyIdentifier           = hash

@@ -522,6 +522,7 @@ class External_Certificates
         $ssl->set_rsa_key_size($metadata['key_size']);
         $ssl->set_md(SSL::DEFAULT_MD);
         $ssl->set_common_name($metadata['cn']);
+        $ssl->set_subject_alt_names([$metadata['cn']]);
         $ssl->set_organization_name($metadata['organization']);
         $ssl->set_organizational_unit($metadata['unit']);
         $ssl->set_email_address($metadata['email']);

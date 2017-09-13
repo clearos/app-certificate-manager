@@ -581,6 +581,7 @@ class SSL extends Engine
         $ssl->set_organization_name($organization);
         $ssl->set_organizational_unit($unit);
         $ssl->set_email_address('security@' . $domain);
+        $ssl->set_subject_alt_names([$domain]);
         $ssl->set_locality($city);
         $ssl->set_state_or_province($region);
         $ssl->set_country_code($country);
@@ -1497,6 +1498,7 @@ class SSL extends Engine
                 $ssl->set_rsa_key_size(self::DEFAULT_KEY_SIZE);
                 $ssl->set_md(self::DEFAULT_MD);
                 $ssl->set_common_name('ca.' . $domain);
+                $ssl->set_subject_alt_names([$domain]);
                 $ssl->set_organization_name($organization);
                 $ssl->set_organizational_unit($unit);
                 $ssl->set_email_address('security@' . $domain);
@@ -1968,6 +1970,25 @@ class SSL extends Engine
         $req_dname = $this->configuration['req']['distinguished_name'];
 
         $this->configuration[$req_dname]['commonName'] = $name;
+    }
+
+    /**
+     * Sets subject alt names.
+     *
+     * @param array $alt_names list of subject alternative names
+     *
+     * @return void
+     */
+
+    public function set_subject_alt_names($alt_names)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! $this->is_loaded)
+            $this->configuration = $this->_load_configuration();
+
+        for ($inx = 1; $inx <= count($alt_names); $inx++)
+            $this->configuration['alt_names']['DNS.' . $inx] = $alt_names[$inx-1];
     }
 
     /**
