@@ -292,7 +292,7 @@ class Certificate extends ClearOS_Controller
                 header("Content-Type: application/x-x509-user-cert");
         }
 
-        echo $attributes['file_contents'];
+        echo $attributes['file_contents'] . "\n";
     }
 
     /**

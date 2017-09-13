@@ -41,9 +41,6 @@ echo field_input('city', $city, lang('organization_city'), $read_only);
 echo field_input('region', $region, lang('organization_region'), $read_only);
 echo field_dropdown('country', $countries, $country, lang('organization_country'), $read_only);
 echo field_input('email', $email, lang('certificate_manager_email'), $read_only);
-echo field_toggle_enable_disable('password_protection', $password_protection, lang('certificate_manager_password_protection'), $read_only);
-echo field_password('password', $password, lang('base_password'), $read_only, $password_field_options);
-echo field_password('verify', $verify, lang('base_verify'), $read_only, $password_field_options);
 
 echo field_button_set(
     array(

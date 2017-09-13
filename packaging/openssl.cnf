@@ -68,7 +68,6 @@ commonName                     = system.lan
 emailAddress                   = noreply@localhost
 
 [ req_attributes ]
-challengePassword              = A challenge password
 unstructuredName               = An optional company name
 
 [ usr_cert ]

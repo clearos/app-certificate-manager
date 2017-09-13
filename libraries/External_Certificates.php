@@ -503,13 +503,9 @@ class External_Certificates
         // Create private key
         $shell = new Shell();
 
-        $password = '';
-        if ($metadata['password'] != '')
-            $password = '-passout pass:' . $metadata['password'];
-
         $exitcode = $shell->execute(
             self::COMMAND_OPENSSL,
-            "genrsa -out '" . self::PATH_CERTIFICATES . "/$name.key' $password " . $metadata['key_size'],
+            "genrsa -out '" . self::PATH_CERTIFICATES . "/$name.key' " . $metadata['key_size'],
             TRUE
         );
 

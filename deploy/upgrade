@@ -73,3 +73,12 @@ fi
 if [ -e /etc/clearos/certificate_manager.d/_default_.key ]; then
     rm -f /etc/clearos/certificate_manager.d/_default_.key
 fi
+
+# Remove challenge password attribute - not recommended
+#-------------------------------------------------------
+
+CHECK=`grep ^challengePassword /etc/pki/CA/openssl.cnf 2>/dev/null`
+if [ -n "$CHECK" ]; then
+    logger -p local6.notice -t installer "app-certificate-manager - removing challenge password feature"
+    sed -i -e '/^challengePassword/d' /etc/pki/CA/openssl.cnf
+fi

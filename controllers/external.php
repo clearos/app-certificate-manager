@@ -260,28 +260,8 @@ class External extends ClearOS_Controller
         $this->form_validation->set_policy('region', 'certificate_manager/SSL', 'validate_region', TRUE);
         $this->form_validation->set_policy('country', 'certificate_manager/SSL', 'validate_country', TRUE);
         $this->form_validation->set_policy('email', 'certificate_manager/SSL', 'validate_email', TRUE);
-        $this->form_validation->set_policy('password_protection', 'certificate_manager/SSL', 'validate_password_protection', FALSE);
-        $this->form_validation->set_policy('password', 'certificate_manager/SSL', 'validate_password', FALSE);
-        $this->form_validation->set_policy('verify', 'certificate_manager/SSL', 'validate_password', FALSE);
 
         $form_ok = $this->form_validation->run();
-
-        // Extra Validation
-        //------------------
-
-        $password = ($this->input->post('password')) ? $this->input->post('password') : '';
-        $verify = ($this->input->post('verify')) ? $this->input->post('verify') : '';
-
-        $data['password_protection'] = $this->input->post('password_protection');
-
-        if ($this->input->post('password_protection') && $password == '') {
-            $this->form_validation->set_error('password', lang('base_password_is_invalid'));
-            $form_ok = FALSE;
-        }
-        if ($password != $verify) {
-            $this->form_validation->set_error('verify', lang('base_password_and_verify_do_not_match'));
-            $form_ok = FALSE;
-        }
 
         // Handle form submit
         //-------------------
