@@ -485,6 +485,8 @@ class SSL extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
+        $this->delete_default_client_certificate($username);
+
         // TODO validate
 
         $defaults = new Certificate_Defaults();
@@ -720,6 +722,9 @@ class SSL extends Engine
 
         if (file_exists(self::PATH_SSL . '/' . $certfile))
             $this->delete_certificate($certfile);
+
+        $file = new File(self::FILE_INDEX);
+        $file->delete_lines("/emailAddress=$username@/");
     }
 
     /**
