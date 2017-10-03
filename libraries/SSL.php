@@ -508,6 +508,7 @@ class SSL extends Engine
         $this->set_md(self::DEFAULT_MD);
         $this->set_organization_name($org_name);
         $this->set_organizational_unit($org_unit);
+        $this->set_subject_alt_names([$username . "@" . $domain]);
         $this->set_email_address($username . "@" . $domain);
         $this->set_locality($city);
         $this->set_state_or_province($region);
