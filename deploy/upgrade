@@ -26,7 +26,7 @@ fi
 
 KEY=/etc/pki/CA/bootstrap.key
 CRT=/etc/pki/CA/bootstrap.crt
-SSLCONF=/etc/pki/CA/openssl.cnf
+SSLCONF=/usr/clearos/apps/certificate_manager/deploy/bootstrap-openssl.cnf
 
 if ( [ ! -s "$KEY" ] || [ ! -s $CRT ] ); then
     # Determine our hostname
