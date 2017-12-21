@@ -70,9 +70,9 @@ clearos_load_library('certificate_manager/SSL');
 // Exceptions
 //-----------
 
-use \clearos\apps\base\Engine_Exception as Engine_Exception;
+use \clearos\apps\base\Validation_Exception as Validation_Exception;
 
-clearos_load_library('base/Engine_Exception');
+clearos_load_library('base/Validation_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -111,6 +111,24 @@ class Certificate_Manager extends Engine
     public function __construct() 
     {
         clearos_profile(__METHOD__, __LINE__);
+    }
+
+    /**
+     * Returns details for a given certificate.
+     *
+     * @return array certificate details
+     */
+
+    public function get_certificate($certificate)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $details = $this->get_certificates();
+
+        if (! array_key_exists($certificate, $details))
+            throw new Validation_Exception(lang('certificate_manager_certificate_invalid'));
+
+        return $details[$certificate];
     }
 
     /**
@@ -214,7 +232,7 @@ class Certificate_Manager extends Engine
      * @throws Engine_Exception
      */
 
-    public function get_registered_certificate($app_name, $app_key)
+    public function get_registered_certificate($app_name, $app_key = '')
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -258,6 +276,7 @@ class Certificate_Manager extends Engine
                 $item['app_name'] = $app_name;
                 $item['app_description'] = $app_state->app_description;
                 $item['app_key'] = $app_key;
+
                 $state[$certificate][] = $item;
             }
         }
