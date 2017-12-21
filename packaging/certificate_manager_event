@@ -5,12 +5,12 @@
  * Samba initialization script.
  *
  * @category   apps
- * @package    samba
+ * @package    certificate-manager
  * @subpackage scripts
  * @author     ClearFoundation <developer@clearfoundation.com>
- * @copyright  2012 ClearFoundation
+ * @copyright  2012-2017 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
- * @link       http://www.clearfoundation.com/docs/developer/apps/samba/
+ * @link       http://www.clearfoundation.com/docs/developer/apps/certificate_manager/
  */
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -24,28 +24,13 @@ require_once $bootstrap . '/bootstrap.php';
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-use \clearos\apps\base\File as File;
-use \clearos\apps\base\Webconfig as Webconfig;
+use \clearos\apps\certificate_manager\Certificate_Manager as Certificate_Manager;
 
-clearos_load_library('base/File');
-clearos_load_library('base/Webconfig');
+clearos_load_library('certificate_manager/Certificate_Manager');
 
 ///////////////////////////////////////////////////////////////////////////////
 // M A I N
 ///////////////////////////////////////////////////////////////////////////////
 
-// Bail if we have already set the system certificate
-$file = new File('/var/clearos/certificate_manager/webconfig');
-
-if ($file->exists())
-    exit(0);
-
-// Set the system certificate
-$webconfig = new Webconfig();
-$options = $webconfig->get_ssl_certificate_options();
-
-if (!array_key_exists('sys-0-cert.pem', $options))
-    exit(0);
-
-$webconfig->set_ssl_certificate('sys-0-cert.pem');
-$file->create('root', 'root', '0644');
+$certificate_manager = new Certificate_Manager();
+$certificate_manager->handle_event();

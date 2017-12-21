@@ -58,12 +58,14 @@ clearos_load_language('certificate_manager');
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
 use \clearos\apps\base\Folder as Folder;
+use \clearos\apps\base\Webconfig as Webconfig;
 use \clearos\apps\certificate_manager\External_Certificates as External_Certificates;
 use \clearos\apps\certificate_manager\SSL as SSL;
 
 clearos_load_library('base/Engine');
 clearos_load_library('base/File');
 clearos_load_library('base/Folder');
+clearos_load_library('base/Webconfig');
 clearos_load_library('certificate_manager/External_Certificates');
 clearos_load_library('certificate_manager/SSL');
 
@@ -307,6 +309,47 @@ class Certificate_Manager extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         return self::API_VERSION;
+    }
+
+    /**
+     * Handles update event.
+     *
+     * This method is run whenever a certficate is renewed.  For example,
+     * a Let's Encrypt certificate gets renewed every 90 days which in
+     * turn triggers this method.
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    public function handle_event()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        // Sets Webconfig certificate on first boot
+        //-----------------------------------------
+
+        // Bail if we have already set the system certificate
+        $file = new File('/var/clearos/certificate_manager/webconfig');
+
+        if (!$file->exists()) {
+            // Set the system certificate
+            $webconfig = new Webconfig();
+            $options = $webconfig->get_ssl_certificate_options();
+
+            if (array_key_exists('sys-0-cert.pem', $options)) {
+                $webconfig->set_ssl_certificate('sys-0-cert.pem');
+                $file->create('root', 'root', '0644');
+            }
+        }
+
+        // For legacy reasons, the web server restart is done here
+        //--------------------------------------------------------
+
+        if (clearos_load_library('web_server/Httpd')) {
+            $httpd = new \clearos\apps\web_server\Httpd();
+            $httpd->reset();
+        }
     }
 
     /**
