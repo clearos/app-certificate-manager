@@ -315,6 +315,36 @@ class External_Certificates
     }
 
     /**
+     * Returns lists of certificates and details.
+     *
+     * @return array list of certs with details
+     * @throws Engine_Exception
+     */
+
+    public function get_certificates()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $certs = array();
+        $ssl = new SSL();
+
+        foreach ($this->_load_certificates() as $line) {
+            $match = array();
+            if (preg_match('%^(.+)\\.([^\\.]+)$%', $line, $match)) {
+                if ($match[2] === 'crt') {
+                    $cert = $match[1];
+                    $details = $ssl->get_certificate_attributes(self::PATH_CERTIFICATES . '/' . $cert . '.crt');
+                    $certs[$cert] = $details;
+                }
+            }
+        }
+
+        ksort($certs);
+
+        return $certs;
+    }
+
+    /**
      * Returns list of available certificates.
      *
      * @return array list of available certs

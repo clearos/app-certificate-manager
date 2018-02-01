@@ -7,7 +7,7 @@
  * @package    certificate-manager
  * @subpackage libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
- * @copyright  2006-2012 ClearFoundation
+ * @copyright  2006-2018 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
  * @link       http://www.clearfoundation.com/docs/developer/apps/certificate_manager/
  */
@@ -87,7 +87,7 @@ clearos_load_library('base/Validation_Exception');
  * @package    certificate-manager
  * @subpackage libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
- * @copyright  2006-2011 ClearFoundation
+ * @copyright  2006-2018 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
  * @link       http://www.clearfoundation.com/docs/developer/apps/certificate_manager/
  */
@@ -110,7 +110,7 @@ class Certificate_Manager extends Engine
      * Certificate manager constructor.
      */
 
-    public function __construct() 
+    public function __construct()
     {
         clearos_profile(__METHOD__, __LINE__);
     }
@@ -151,7 +151,7 @@ class Certificate_Manager extends Engine
         $external_certificates = new External_Certificates();
         $list = $external_certificates->get_server_certificates();
 
-        // Self-signed 
+        // Self-signed
         //------------
 
         $ssl = new SSL();
@@ -159,7 +159,7 @@ class Certificate_Manager extends Engine
 
         foreach ($self_signed as $basename => $details) {
             // The hard-coded sys-0-key can be cleaned up if we ever support
-            // multiple system certificates. 
+            // multiple system certificates.
             $list[$basename]['certificate-filename'] = SSL::PATH_SSL . '/' . $basename;
             $list[$basename]['ca-filename'] = SSL::FILE_CA_CRT;
             $list[$basename]['key-filename'] = SSL::PATH_SSL_PRIVATE . '/sys-0-key.pem';
@@ -212,7 +212,7 @@ class Certificate_Manager extends Engine
             $list[$basename] = lang('certificate_manager_external') . ' - ' . $nickname;
         }
 
-        // Self-signed 
+        // Self-signed
         //------------
 
         $ssl = new SSL();
@@ -248,6 +248,60 @@ class Certificate_Manager extends Engine
         }
 
         return '';
+    }
+
+    /**
+     * Returns certificate list in secure hostname format.
+     *
+     * @return array certificate list in secure hostname format
+     * @throws Engine_Exception
+     */
+
+    public function get_secure_hostnames()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $list = array();
+
+        // Let's Encrypt
+        //--------------
+
+        if (clearos_load_library('lets_encrypt/Lets_Encrypt')) {
+            $lets = new  \clearos\apps\lets_encrypt\Lets_Encrypt();
+            $lets_list = $lets->get_certificates();
+
+            foreach ($lets_list as $cert => $details) {
+                $list[$cert]['name'] = 'Let\'s Encrypt - ' . $cert;
+                $list[$cert]['hostnames'] = [$details['common_name']];
+
+                if (!empty($details['domains'])) {
+                    foreach ($details['domains'] as $domain)
+                        $list[$cert]['hostnames'][] = $domain;
+                }
+
+                $list[$cert]['hostnames'] = array_unique($list[$cert]['hostnames']);
+            }
+        }
+
+        // External
+        //---------
+
+        // Not supported for now.
+
+        // Self-signed
+        //------------
+
+        $ssl = new SSL();
+        $self_signed = $ssl->get_certificates(SSL::CERT_TYPE_SERVER);
+
+        foreach ($self_signed as $basename => $details) {
+            $details = $ssl->get_certificate_attributes(SSL::PATH_SSL . '/' . $basename);
+
+            $list[$basename]['name'] = lang('certificate_manager_self_signed') . ' - ' . lang('certificate_manager_default_certificate');
+            $list[$basename]['hostnames'] = [$details['common_name']];
+        }
+
+        return $list;
     }
 
     /**
