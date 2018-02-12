@@ -383,8 +383,6 @@ class Certificate_Manager extends Engine
         // Sets Webconfig certificate on first boot
         //-----------------------------------------
 
-        // FIXME: review
-        /*
         $file = new File('/var/clearos/certificate_manager/webconfig');
 
         if (!$file->exists()) {
@@ -397,7 +395,6 @@ class Certificate_Manager extends Engine
                 $file->create('root', 'root', '0644');
             }
         }
-        */
 
         // For legacy reasons, the web server restart is done here
         //--------------------------------------------------------
