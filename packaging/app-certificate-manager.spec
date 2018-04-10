@@ -1,11 +1,13 @@
 
 Name: app-certificate-manager
 Epoch: 1
-Version: 2.4.21
+Version: 2.4.22
 Release: 1%{dist}
 Summary: Certificate Manager
 License: GPLv3
-Group: ClearOS/Apps
+Group: Applications/Apps
+Packager: ClearFoundation
+Vendor: ClearFoundation
 Source: %{name}-%{version}.tar.gz
 Buildarch: noarch
 Requires: %{name}-core = 1:%{version}-%{release}
@@ -16,9 +18,9 @@ Requires: app-accounts
 Security certificates are an industry standard for encrypting information sent over a network, providing authentication and enabling digital signatures.  The Certificate Manager app provides the ability to create, manage and deploy security certificates to users and apps.
 
 %package core
-Summary: Certificate Manager - Core
+Summary: Certificate Manager - API
 License: LGPLv3
-Group: ClearOS/Libraries
+Group: Applications/API
 Requires: app-base-core
 Requires: /usr/bin/getent
 Requires: /usr/sbin/groupadd
